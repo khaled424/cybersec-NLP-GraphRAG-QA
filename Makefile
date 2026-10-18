@@ -1,4 +1,4 @@
-.PHONY: install data train api frontend test lint
+.PHONY: install data explore api test lint
 
 install:
 	python -m pip install -e ".[dev]"
@@ -6,17 +6,14 @@ install:
 data:
 	python scripts/download_data.py
 
-train:
-	python -m ml.pipelines.train
+explore:
+	python scripts/explore_data.py
 
 api:
-	uvicorn backend.main:app --reload
-
-frontend:
-	python frontend/app.py
+	python -m uvicorn backend.main:app --reload
 
 test:
 	python -m pytest
 
 lint:
-	ruff check .
+	python -m ruff check .

@@ -1,27 +1,74 @@
-# cybersec-nlp-graphrag
+# cybersec-NLP-GraphRAG-QA
 
-Monorepo-style starter structure for cybersecurity incident analysis and
-question answering with NLP, knowledge graphs, and Graph-RAG.
+An academic project exploring NLP, knowledge graphs, and Graph-RAG for
+cybersecurity incident analysis and question answering. Its initial dataset
+contains defensive cybersecurity instruction-and-response examples.
 
-## Getting started
+## Architecture
+
+- `ml/` — data workflows, machine-learning models, evaluation, and Graph-RAG
+  components.
+- `backend/` — FastAPI inference and service layer.
+- `frontend/` — user-interface application and components.
+- `infra/` — Dockerfiles and Docker Compose configuration.
+- `configs/` — Hydra and API configuration.
+- `scripts/` — dataset download and exploration utilities.
+- `tests/` — unit and smoke tests.
+
+## Quick Start
+
+Install the project:
 
 ```bash
-python -m pip install -e ".[dev]"
-make test
-make api
+pip install -e .
 ```
 
-The API health check is available at `GET /health`. Start the Hydra-based
-training skeleton with `make train`.
+For tests and linting, install the development extras as well:
 
-## Project layout
+```bash
+pip install -e ".[dev]"
+```
 
-- `ml/`: data, models, evaluation, and Graph-RAG pipelines
-- `backend/`: FastAPI application, routes, schemas, and services
-- `frontend/`: UI placeholder
-- `configs/`: Hydra YAML configuration
-- `infra/`: Dockerfiles and Compose configuration
-- `tests/`: smoke tests
+On Windows, run the PowerShell wrapper from the repository root:
 
-TODO: Document data sources, model choices, and end-to-end workflows as they
-are implemented.
+```powershell
+.\run.ps1 data
+.\run.ps1 explore
+```
+
+Use `.\run.ps1 api`, `.\run.ps1 test`, or `.\run.ps1 lint` for the API and
+quality checks. Alternatively, use the equivalent Make targets on systems
+where `make` is available:
+
+```bash
+make data
+make explore
+make api
+make test
+make lint
+```
+
+The download command stores the dataset at `data/raw/cybersec_v1`. The current
+dataset has `system`, `user`, and `assistant` fields and no explicit class
+labels, so the EDA script reports that a class distribution is unavailable.
+
+## Project Status
+
+- [x] Monorepo-style starter architecture and Python package configuration.
+- [x] FastAPI health-check endpoint.
+- [x] Hugging Face dataset download and local save workflow.
+- [x] Initial EDA summary for row count, columns, labels when present, and
+  sample rows.
+- [x] Windows PowerShell and Make command wrappers.
+- [ ] Train and evaluate production cybersecurity models.
+- [ ] Implement and index the complete Graph-RAG workflow.
+- [ ] Build the user interface.
+
+## Team
+
+- Emna Trabelsi
+- Ines Trabelsi
+- Hejer Mnejja
+- Walid Fehry
+- Khaled Gannoun
+- Adrian Salvador Ekomo Mesi Obono
