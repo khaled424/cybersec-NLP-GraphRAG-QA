@@ -17,13 +17,7 @@ contains defensive cybersecurity instruction-and-response examples.
 
 ## Quick Start
 
-Install the project:
-
-```bash
-pip install -e .
-```
-
-For tests and linting, install the development extras as well:
+Install the project and development tools:
 
 ```bash
 pip install -e ".[dev]"
@@ -36,27 +30,30 @@ On Windows, run the PowerShell wrapper from the repository root:
 .\run.ps1 explore
 ```
 
-Use `.\run.ps1 api`, `.\run.ps1 test`, or `.\run.ps1 lint` for the API and
-quality checks. Alternatively, use the equivalent Make targets on systems
-where `make` is available:
+Use the other PowerShell commands as needed:
 
-```bash
-make data
-make explore
-make api
-make test
-make lint
+```powershell
+.\run.ps1 api
+.\run.ps1 test
+.\run.ps1 lint
 ```
 
 The download command stores the dataset at `data/raw/cybersec_v1`. The current
 dataset has `system`, `user`, and `assistant` fields and no explicit class
 labels, so the EDA script reports that a class distribution is unavailable.
 
+## 📊 Le Dataset
+
+- **Source:** [AlicanKiraz0/Cybersecurity-Dataset-v1](https://huggingface.co/datasets/AlicanKiraz0/Cybersecurity-Dataset-v1), sous licence Apache 2.0.
+- **Taille :** environ 2 500 paires d'instructions et de réponses, structurées avec les champs `system`, `user` et `assistant`.
+- **Absence de labels explicites :** le dataset ne fournit pas de classes prêtes à l'emploi. Nous utiliserons donc une classification *zero-shot*, sans entraînement sur des labels de classes du dataset.
+- **Format `.arrow` :** les fichiers Arrow sont des fichiers binaires, donc illisibles directement dans un éditeur de texte. Ce format est optimisé pour le chargement et le traitement avec Hugging Face `datasets`; utilisez Python et `load_from_disk` pour lire le dataset enregistré.
+
 ## Project Status
 
 - [x] Monorepo-style starter architecture and Python package configuration.
 - [x] FastAPI health-check endpoint.
-- [x] Hugging Face dataset download and local save workflow.
+- [x] Hugging Face dataset download and local save workflow
 - [x] Initial EDA summary for row count, columns, labels when present, and
   sample rows.
 - [x] Windows PowerShell and Make command wrappers.
