@@ -1,0 +1,10 @@
+defaults:
+  - _self_
+
+seed: 42
+data:
+  # TODO: Set the training dataset path.
+  path: data/processed
+training:
+  # TODO: Configure model and optimizer parameters.
+  epochs: 1

@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cybersec-nlp-graphrag"
+version = "0.1.0"
+description = "Cybersecurity question answering with NLP, knowledge graphs, and Graph-RAG."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "transformers",
+    "torch",
+    "networkx",
+    "sentence-transformers",
+    "faiss-cpu",
+    "datasets",
+    "pydantic",
+    "python-dotenv",
+    "hydra-core",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+]
+
+[tool.setuptools.packages.find]
+include = ["ml*", "backend*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
