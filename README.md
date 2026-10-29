@@ -15,6 +15,17 @@ contains defensive cybersecurity instruction-and-response examples.
 - `scripts/` — dataset download and exploration utilities.
 - `tests/` — unit and smoke tests.
 
+## Documentation
+
+- [Compte rendu TDSP — phases 1 et 2](./docs/tdsp/PHASES_1_2.md) — cadrage,
+  inventaire des données, décisions ouvertes et consignes de partage avec
+  l'équipe.
+- [Guide de déploiement et de mise en production](./GUIDE_DEPLOIEMENT.md) —
+  étapes, vérifications et contrôles de sécurité pour faire évoluer le
+  prototype vers une solution fiable.
+- [Rapport projet TDSP](./rapport-projet-cybersecurity-tdsp.md) — objectifs,
+  architecture proposée et feuille de route.
+
 ## Quick Start
 
 Install the project and development tools:
