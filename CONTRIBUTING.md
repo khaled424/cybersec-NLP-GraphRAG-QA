@@ -21,8 +21,8 @@ Use `.\run.ps1` for the standard project commands:
 .\run.ps1 lint
 ```
 
-The dataset and trained model artifacts are local resources. Keep them out of
-source control; the repository ignores `data/` and `models/`.
+The dataset and generated artifacts are local resources. Keep them out of
+source control; the repository ignores the contents of `data/`.
 
 ## Golden rules
 

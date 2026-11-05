@@ -4,10 +4,10 @@ install:
 	python -m pip install -e ".[dev]"
 
 data:
-	python scripts/download_data.py
+	python -m cybersec_nlp.data.download
 
 explore:
-	python scripts/explore_data.py
+	python -m cybersec_nlp.data.explore
 
 api:
 	python -m uvicorn backend.main:app --reload

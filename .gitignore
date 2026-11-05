@@ -220,7 +220,7 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Project-local data and trained model artifacts
-/data/
-/models/
+/data/*/*
+!/data/*/.gitkeep
 /assets/
 /outputs/

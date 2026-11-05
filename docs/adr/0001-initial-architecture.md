@@ -5,13 +5,13 @@
 
 ## Context
 
-The project combines machine-learning workflows, Graph-RAG components, an
+The project combines NLP workflows, Graph-RAG components, an
 inference API, and a user interface. These concerns should remain independently
 organized while sharing a single repository and Python environment.
 
 ## Decision
 
-Use a monorepo-style layout with `ml/` for ML and retrieval components,
+Use a monorepo-style layout with `src/cybersec_nlp/` (organised by TDSP stage) for NLP and retrieval components,
 `backend/` for the API, `frontend/` for the user interface, and `infra/` for
 deployment assets. Keep configuration, tests, and technical documentation in
 dedicated top-level directories.

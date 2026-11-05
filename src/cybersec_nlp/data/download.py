@@ -5,7 +5,7 @@ from pathlib import Path
 from datasets import load_dataset
 
 DATASET_ID = "AlicanKiraz0/Cybersecurity-Dataset-v1"
-SAVE_PATH = Path(__file__).resolve().parents[1] / "data" / "raw" / "cybersec_v1"
+SAVE_PATH = Path(__file__).resolve().parents[3] / "data" / "raw" / "cybersec_v1"
 
 
 def main() -> None:

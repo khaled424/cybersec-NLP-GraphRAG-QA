@@ -2,7 +2,7 @@
 
 
 def test_rag_modules_are_importable() -> None:
-    from ml.rag import generator, pipeline, retriever
+    from cybersec_nlp.rag import generator, pipeline, retriever
 
     assert generator is not None
     assert pipeline is not None

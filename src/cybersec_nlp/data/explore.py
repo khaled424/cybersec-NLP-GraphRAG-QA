@@ -7,7 +7,7 @@ from typing import Any
 
 from datasets import Dataset, DatasetDict, load_from_disk
 
-DATASET_PATH = Path(__file__).resolve().parents[1] / "data" / "raw" / "cybersec_v1"
+DATASET_PATH = Path(__file__).resolve().parents[3] / "data" / "raw" / "cybersec_v1"
 LABEL_COLUMNS = ("label", "labels", "class", "category", "classification")
 
 

@@ -6,13 +6,21 @@ contains defensive cybersecurity instruction-and-response examples.
 
 ## Architecture
 
-- `ml/` — data workflows, machine-learning models, evaluation, and Graph-RAG
-  components.
-- `backend/` — FastAPI inference and service layer.
+The repository follows the TDSP lifecycle (see
+[docs/tdsp/STRUCTURE.md](./docs/tdsp/STRUCTURE.md)). This is a pure NLP /
+Graph-RAG project; no model training is involved.
+
+- `src/cybersec_nlp/` — Python package: `data/` (download, EDA helpers),
+  `features/` (preprocessing), `nlp/` (zero-shot classification, NER),
+  `graph/` (knowledge graph), `rag/` (retrieval and generation),
+  `evaluation/`, `pipelines/`.
+- `notebooks/` — EDA and prototyping.
+- `data/` — `raw`, `interim`, `processed`, `external` (not versioned).
+- `backend/` — FastAPI service layer.
 - `frontend/` — user-interface application and components.
 - `infra/` — Dockerfiles and Docker Compose configuration.
 - `configs/` — Hydra and API configuration.
-- `scripts/` — dataset download and exploration utilities.
+- `docs/` — TDSP reports, ADRs, experiments.
 - `tests/` — unit and smoke tests.
 
 ## Documentation
@@ -20,6 +28,7 @@ contains defensive cybersecurity instruction-and-response examples.
 - [Compte rendu TDSP — phases 1 et 2](./docs/tdsp/PHASES_1_2.md) — cadrage,
   inventaire des données, décisions ouvertes et consignes de partage avec
   l'équipe.
+- [Structure du dépôt selon le TDSP](./docs/tdsp/STRUCTURE.md) — mapping phases/dossiers.
 - [Guide de déploiement et de mise en production](./GUIDE_DEPLOIEMENT.md) —
   étapes, vérifications et contrôles de sécurité pour faire évoluer le
   prototype vers une solution fiable.
