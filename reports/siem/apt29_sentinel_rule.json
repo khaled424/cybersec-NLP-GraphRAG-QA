@@ -1,0 +1,17 @@
+{
+  "kind": "Scheduled",
+  "properties": {
+    "displayName": "CTI - APT29 infrastructure",
+    "description": "IOC issus du graphe Graph-RAG assaini pour APT29",
+    "severity": "High",
+    "enabled": true,
+    "query": "union\n(CommonSecurityLog\n| where TimeGenerated > ago(24h)\n| where SourceIP in (\"203.0.113.77\", \"198.51.100.99\") or DestinationIP in (\"203.0.113.77\", \"198.51.100.99\")\n| project TimeGenerated, Computer, SourceIP, DestinationIP, Activity),\n(DnsEvents\n| where TimeGenerated > ago(24h)\n| where Name in~ (\"cdn-update.example.net\", \"wm-sync.example.org\")\n| project TimeGenerated, Computer, ClientIP, Name),\n(DeviceFileEvents\n| where TimeGenerated > ago(24h)\n| where SHA256 in~ (\"f9babeebc604f41592b1906153661060a0062ba0edf62b33d813425dfa91b835\", \"2fe196a0e86c216e21b13770938da8af09fbf3149ff3591bb8b174301d4d036d\")\n| project TimeGenerated, DeviceName, FileName, SHA256)",
+    "queryFrequency": "PT15M",
+    "queryPeriod": "PT24H",
+    "triggerOperator": "GreaterThan",
+    "triggerThreshold": 0,
+    "techniques": [
+      "T1071"
+    ]
+  }
+}

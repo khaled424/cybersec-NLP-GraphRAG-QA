@@ -13,7 +13,8 @@ Graph-RAG project; no model training is involved.
 - `src/cybersec_nlp/` — Python package: `data/` (download, EDA helpers),
   `features/` (preprocessing), `nlp/` (zero-shot classification, NER),
   `graph/` (knowledge graph), `rag/` (retrieval and generation),
-  `evaluation/`, `pipelines/`.
+  `evaluation/`, `pipelines/`, `security/` (audit GragPoison, OWASP LLM08),
+  `siem/` (règles SPL/KQL).
 - `notebooks/` — EDA and prototyping.
 - `data/` — `raw`, `interim`, `processed`, `external` (not versioned).
 - `backend/` — FastAPI service layer.
