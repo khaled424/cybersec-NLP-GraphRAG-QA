@@ -1,0 +1,126 @@
+{
+  "dataset": {
+    "id": "AlicanKiraz0/Cybersecurity-Dataset-v1",
+    "revision": "410b35d53b8b1d49b9b781760a32147b2946698c",
+    "cleaning": [
+      {
+        "name": "Dataset brut",
+        "rows": 2411
+      },
+      {
+        "name": "Après suppression des NaN (user / assistant)",
+        "rows": 2409
+      },
+      {
+        "name": "Après suppression des doublons 'user'",
+        "rows": 2394
+      },
+      {
+        "name": "Après filtrage courts / tronqués",
+        "rows": 2194
+      }
+    ]
+  },
+  "ner": {
+    "entity_mentions": {
+      "VECTOR": 4648,
+      "SOFTWARE": 5821,
+      "ATTACK_ID": 171,
+      "TOOL": 517,
+      "TARGET": 579,
+      "IP": 81,
+      "CVE": 140,
+      "MALWARE": 221,
+      "THREAT_ACTOR": 32,
+      "HASH": 3
+    },
+    "docs_with_entity": 1813,
+    "docs": 2194
+  },
+  "graph": {
+    "nodes": {
+      "Document": 2194,
+      "AttackPattern": 131,
+      "Software": 60,
+      "Tool": 27,
+      "Target": 18,
+      "Indicator": 20,
+      "Vulnerability": 86,
+      "Malware": 27,
+      "ThreatActor": 10
+    },
+    "edges": {
+      "MENTIONS": 4926,
+      "TARGETS": 258,
+      "USES": 38,
+      "AFFECTS": 55
+    },
+    "n_nodes": 2573,
+    "n_edges": 5277
+  },
+  "classifier": {
+    "classes": [
+      "Cloud & Governance",
+      "Detection & IR (SOC)",
+      "Identity & Crypto",
+      "Malware & Ransomware",
+      "Network & Intrusion",
+      "Vulnerability & Exploit",
+      "Web App Attacks"
+    ],
+    "n_train": 1268,
+    "n_test": 317,
+    "macro_f1": 0.5287424814972789,
+    "accuracy": 0.5993690851735016,
+    "per_class": {
+      "Cloud & Governance": {
+        "precision": 0.625,
+        "recall": 0.3125,
+        "f1-score": 0.4166666666666667,
+        "support": 16.0
+      },
+      "Detection & IR (SOC)": {
+        "precision": 0.47058823529411764,
+        "recall": 0.6153846153846154,
+        "f1-score": 0.5333333333333333,
+        "support": 26.0
+      },
+      "Identity & Crypto": {
+        "precision": 0.46808510638297873,
+        "recall": 0.55,
+        "f1-score": 0.5057471264367817,
+        "support": 40.0
+      },
+      "Malware & Ransomware": {
+        "precision": 0.6056338028169014,
+        "recall": 0.7678571428571429,
+        "f1-score": 0.6771653543307087,
+        "support": 56.0
+      },
+      "Network & Intrusion": {
+        "precision": 0.5,
+        "recall": 0.2857142857142857,
+        "f1-score": 0.36363636363636365,
+        "support": 14.0
+      },
+      "Vulnerability & Exploit": {
+        "precision": 0.8333333333333334,
+        "recall": 0.5952380952380952,
+        "f1-score": 0.6944444444444444,
+        "support": 126.0
+      },
+      "Web App Attacks": {
+        "precision": 0.423728813559322,
+        "recall": 0.6410256410256411,
+        "f1-score": 0.5102040816326531,
+        "support": 39.0
+      }
+    }
+  },
+  "timings_s": {
+    "cleaning": 0.99,
+    "ner_graph_exports": 27.87,
+    "vector_index": 78.61,
+    "classifier": 10.19
+  }
+}

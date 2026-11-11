@@ -1,0 +1,88 @@
+{
+  "demo_agent": {
+    "Sans agent (1 essai)": 0.3333333333333333,
+    "Agent ReAct (≤ 4 essais)": 0.6666666666666666
+  },
+  "real_agent": [
+    {
+      "configuration": "LLM seul (1 essai)",
+      "exécutable": 0.4,
+      "exacte": 0.0,
+      "partielle": 0.0,
+      "étapes": 1.6
+    },
+    {
+      "configuration": "Agent déterministe",
+      "exécutable": 0.6,
+      "exacte": 0.4,
+      "partielle": 0.5,
+      "étapes": 2.4
+    },
+    {
+      "configuration": "Agent + réparation LLM",
+      "exécutable": 0.7,
+      "exacte": 0.4,
+      "partielle": 0.5,
+      "étapes": 3.0
+    }
+  ],
+  "demo_poisoning": {
+    "unprovenanced": 13,
+    "hub_injection": 1,
+    "attribution_flip": 1,
+    "prompt_injection": 1
+  },
+  "real_poisoning": {
+    "arêtes injectées": 34,
+    "arêtes retirées": 32,
+    "précision": 1.0,
+    "rappel": 0.9411764705882353,
+    "nœuds signalés": 2,
+    "faux positifs sur le graphe sain": 0,
+    "by_detector": {
+      "unprovenanced": 25,
+      "prompt_injection": 1,
+      "provenance_mismatch": 7,
+      "unmentioned_entity": 1
+    }
+  },
+  "llm08": {
+    "leaks_vulnerable": 5,
+    "leaks_fixed": 0,
+    "inversion": [
+      {
+        "sigma": 0.0,
+        "recovery": 1.0
+      },
+      {
+        "sigma": 0.02,
+        "recovery": 1.0
+      },
+      {
+        "sigma": 0.05,
+        "recovery": 1.0
+      },
+      {
+        "sigma": 0.1,
+        "recovery": 0.7166666666666667
+      },
+      {
+        "sigma": 0.2,
+        "recovery": 0.16666666666666666
+      },
+      {
+        "sigma": 0.4,
+        "recovery": 0.041666666666666664
+      }
+    ]
+  },
+  "siem": {
+    "demo_rejected": [
+      "invalid domain: 'x.example.com\") | delete index=*'"
+    ],
+    "indicateurs candidats": 20,
+    "IP retenues": 1,
+    "empreintes retenues": 0,
+    "rejetés": 18
+  }
+}

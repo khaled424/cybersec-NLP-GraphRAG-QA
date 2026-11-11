@@ -1,0 +1,452 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 750px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+             #loadingBar {
+                 position:absolute;
+                 top:0px;
+                 left:0px;
+                 width: 100%;
+                 height: 750px;
+                 background-color:rgba(200,200,200,0.8);
+                 -webkit-transition: all 0.5s ease;
+                 -moz-transition: all 0.5s ease;
+                 -ms-transition: all 0.5s ease;
+                 -o-transition: all 0.5s ease;
+                 transition: all 0.5s ease;
+                 opacity:1;
+             }
+
+             #bar {
+                 position:absolute;
+                 top:0px;
+                 left:0px;
+                 width:20px;
+                 height:20px;
+                 margin:auto auto auto auto;
+                 border-radius:11px;
+                 border:2px solid rgba(30,30,30,0.05);
+                 background: rgb(0, 173, 246); /* Old browsers */
+                 box-shadow: 2px 0px 4px rgba(0,0,0,0.4);
+             }
+
+             #border {
+                 position:absolute;
+                 top:10px;
+                 left:10px;
+                 width:500px;
+                 height:23px;
+                 margin:auto auto auto auto;
+                 box-shadow: 0px 0px 4px rgba(0,0,0,0.2);
+                 border-radius:10px;
+             }
+
+             #text {
+                 position:absolute;
+                 top:8px;
+                 left:530px;
+                 width:30px;
+                 height:50px;
+                 margin:auto auto auto auto;
+                 font-size:22px;
+                 color: #000000;
+             }
+
+             div.outerBorder {
+                 position:relative;
+                 top:400px;
+                 width:600px;
+                 height:44px;
+                 margin:auto auto auto auto;
+                 border:8px solid rgba(0,0,0,0.1);
+                 background: rgb(252,252,252); /* Old browsers */
+                 background: -moz-linear-gradient(top,  rgba(252,252,252,1) 0%, rgba(237,237,237,1) 100%); /* FF3.6+ */
+                 background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(252,252,252,1)), color-stop(100%,rgba(237,237,237,1))); /* Chrome,Safari4+ */
+                 background: -webkit-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Chrome10+,Safari5.1+ */
+                 background: -o-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Opera 11.10+ */
+                 background: -ms-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* IE10+ */
+                 background: linear-gradient(to bottom,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* W3C */
+                 filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fcfcfc', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
+                 border-radius:72px;
+                 box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+             }
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+            <div id="loadingBar">
+              <div class="outerBorder">
+                <div id="text">0%</div>
+                <div id="border">
+                  <div id="bar"></div>
+                </div>
+              </div>
+            </div>
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#636363", "font": {"color": "black"}, "id": "implement", "label": "implement", "shape": "dot", "size": 51.99999999990291, "title": "\u003cb\u003eimplement\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 450\u003cbr\u003eCommunaut\u00e9 : 15\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eprocess (NPMI 0.22)"}, {"color": "#636363", "font": {"color": "black"}, "id": "process", "label": "process", "shape": "dot", "size": 31.999999999951456, "title": "\u003cb\u003eprocess\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 244\u003cbr\u003eCommunaut\u00e9 : 15\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eimplement (NPMI 0.22)"}, {"color": "#31a354", "font": {"color": "black"}, "id": "exploit", "label": "exploit", "shape": "dot", "size": 40.25242718439745, "title": "\u003cb\u003eexploit\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 329\u003cbr\u003eCommunaut\u00e9 : 2\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ecomprehensive (NPMI 0.27)"}, {"color": "#31a354", "font": {"color": "black"}, "id": "comprehensive", "label": "comprehensive", "shape": "dot", "size": 14.233009708732444, "title": "\u003cb\u003ecomprehensive\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 61\u003cbr\u003eCommunaut\u00e9 : 2\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003emethodology (NPMI 0.42)\u003cbr\u003etechnique (NPMI 0.28)\u003cbr\u003eexploit (NPMI 0.27)"}, {"color": "#e7ba52", "font": {"color": "black"}, "id": "vulnerability", "label": "vulnerability", "shape": "dot", "size": 37.04854368925959, "title": "\u003cb\u003evulnerability\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 296\u003cbr\u003eCommunaut\u00e9 : 6\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003exss (NPMI 0.21)\u003cbr\u003emethodology (NPMI 0.20)"}, {"color": "#31a354", "font": {"color": "black"}, "id": "methodology", "label": "methodology", "shape": "dot", "size": 21.02912621357032, "title": "\u003cb\u003emethodology\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 131\u003cbr\u003eCommunaut\u00e9 : 2\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ecomprehensive (NPMI 0.42)\u003cbr\u003evulnerability (NPMI 0.20)"}, {"color": "#e7ba52", "font": {"color": "black"}, "id": "xss", "label": "xss", "shape": "dot", "size": 16.271844660183806, "title": "\u003cb\u003exss\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 82\u003cbr\u003eCommunaut\u00e9 : 6\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003epayload (NPMI 0.28)\u003cbr\u003evulnerability (NPMI 0.21)\u003cbr\u003eexample (NPMI 0.20)"}, {"color": "#31a354", "font": {"color": "black"}, "id": "implementation", "label": "implementation", "shape": "dot", "size": 36.75728155333797, "title": "\u003cb\u003eimplementation\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 293\u003cbr\u003eCommunaut\u00e9 : 12\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edetail (NPMI 0.36)"}, {"color": "#31a354", "font": {"color": "black"}, "id": "detail", "label": "detail", "shape": "dot", "size": 27.339805825205488, "title": "\u003cb\u003edetail\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 196\u003cbr\u003eCommunaut\u00e9 : 12\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003etechnical (NPMI 0.47)\u003cbr\u003eimplementation (NPMI 0.36)"}, {"color": "#31a354", "font": {"color": "black"}, "id": "technique", "label": "technique", "shape": "dot", "size": 34.427184465964984, "title": "\u003cb\u003etechnique\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 269\u003cbr\u003eCommunaut\u00e9 : 2\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eadvanced (NPMI 0.30)\u003cbr\u003ecomprehensive (NPMI 0.28)"}, {"color": "#31a354", "font": {"color": "black"}, "id": "advanced", "label": "advanced", "shape": "dot", "size": 17.53398058251084, "title": "\u003cb\u003eadvanced\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 95\u003cbr\u003eCommunaut\u00e9 : 2\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003etechnique (NPMI 0.30)\u003cbr\u003emethod (NPMI 0.29)\u003cbr\u003ecombine (NPMI 0.22)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "bypass", "label": "bypass", "shape": "dot", "size": 32.29126213587308, "title": "\u003cb\u003ebypass\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 247\u003cbr\u003eCommunaut\u00e9 : 10\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eprotection (NPMI 0.24)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "protection", "label": "protection", "shape": "dot", "size": 13.359223300967574, "title": "\u003cb\u003eprotection\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 52\u003cbr\u003eCommunaut\u00e9 : 10\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ebypass (NPMI 0.24)\u003cbr\u003emodern (NPMI 0.22)\u003cbr\u003estack (NPMI 0.22)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "perform", "label": "perform", "shape": "dot", "size": 31.999999999951456, "title": "\u003cb\u003eperform\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 244\u003cbr\u003eCommunaut\u00e9 : 11\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eanalysis (NPMI 0.22)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "analysis", "label": "analysis", "shape": "dot", "size": 25.203883495113583, "title": "\u003cb\u003eanalysis\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 174\u003cbr\u003eCommunaut\u00e9 : 11\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edetect (NPMI 0.24)\u003cbr\u003eperform (NPMI 0.22)"}, {"color": "#31a354", "font": {"color": "black"}, "id": "method", "label": "method", "shape": "dot", "size": 27.82524271840819, "title": "\u003cb\u003emethod\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 201\u003cbr\u003eCommunaut\u00e9 : 2\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eadvanced (NPMI 0.29)"}, {"color": "#31a354", "font": {"color": "black"}, "id": "technical", "label": "technical", "shape": "dot", "size": 23.26213592230276, "title": "\u003cb\u003etechnical\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 154\u003cbr\u003eCommunaut\u00e9 : 12\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edetail (NPMI 0.47)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "system", "label": "system", "shape": "dot", "size": 25.592233009675745, "title": "\u003cb\u003esystem\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 178\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edetection (NPMI 0.25)\u003cbr\u003edesign (NPMI 0.22)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "detection", "label": "detection", "shape": "dot", "size": 23.06796116502168, "title": "\u003cb\u003edetection\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 152\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eevade (NPMI 0.33)\u003cbr\u003emachine (NPMI 0.25)\u003cbr\u003esystem (NPMI 0.25)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "design", "label": "design", "shape": "dot", "size": 21.02912621357032, "title": "\u003cb\u003edesign\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 131\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003earchitecture (NPMI 0.24)\u003cbr\u003emachine (NPMI 0.23)\u003cbr\u003esystem (NPMI 0.22)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "detect", "label": "detect", "shape": "dot", "size": 17.63106796115138, "title": "\u003cb\u003edetect\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 96\u003cbr\u003eCommunaut\u00e9 : 11\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eanalysis (NPMI 0.24)\u003cbr\u003erootkit (NPMI 0.22)"}, {"color": "#756bb1", "font": {"color": "black"}, "id": "security", "label": "security", "shape": "dot", "size": 25.106796116473042, "title": "\u003cb\u003esecurity\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 173\u003cbr\u003eCommunaut\u00e9 : 13\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003epolicy (NPMI 0.29)\u003cbr\u003emodule (NPMI 0.22)"}, {"color": "#756bb1", "font": {"color": "black"}, "id": "policy", "label": "policy", "shape": "dot", "size": 12.194174757281083, "title": "\u003cb\u003epolicy\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 40\u003cbr\u003eCommunaut\u00e9 : 13\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003esecurity (NPMI 0.29)"}, {"color": "#756bb1", "font": {"color": "black"}, "id": "module", "label": "module", "shape": "dot", "size": 12.194174757281083, "title": "\u003cb\u003emodule\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 40\u003cbr\u003eCommunaut\u00e9 : 13\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003esecurity (NPMI 0.22)"}, {"color": "#8c564b", "font": {"color": "black"}, "id": "code", "label": "code", "shape": "dot", "size": 24.524271844629794, "title": "\u003cb\u003ecode\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 167\u003cbr\u003eCommunaut\u00e9 : 8\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eexecution (NPMI 0.36)\u003cbr\u003earbitrary (NPMI 0.26)"}, {"color": "#8c564b", "font": {"color": "black"}, "id": "execution", "label": "execution", "shape": "dot", "size": 18.50485436891625, "title": "\u003cb\u003eexecution\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 105\u003cbr\u003eCommunaut\u00e9 : 8\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ecode (NPMI 0.36)\u003cbr\u003earbitrary (NPMI 0.30)\u003cbr\u003eachieve (NPMI 0.26)"}, {"color": "#8c564b", "font": {"color": "black"}, "id": "arbitrary", "label": "arbitrary", "shape": "dot", "size": 13.06796116504595, "title": "\u003cb\u003earbitrary\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 49\u003cbr\u003eCommunaut\u00e9 : 8\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eachieve (NPMI 0.30)\u003cbr\u003eexecution (NPMI 0.30)\u003cbr\u003ecode (NPMI 0.26)\u003cbr\u003estructure (NPMI 0.21)"}, {"color": "#636363", "font": {"color": "black"}, "id": "attacker", "label": "attacker", "shape": "dot", "size": 24.233009708708174, "title": "\u003cb\u003eattacker\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 164\u003cbr\u003eCommunaut\u00e9 : 5\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003euse (NPMI 0.28)\u003cbr\u003eabuse (NPMI 0.24)\u003cbr\u003edescribe (NPMI 0.22)"}, {"color": "#636363", "font": {"color": "black"}, "id": "use", "label": "use", "shape": "dot", "size": 22.388349514537893, "title": "\u003cb\u003euse\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 145\u003cbr\u003eCommunaut\u00e9 : 5\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eattacker (NPMI 0.28)\u003cbr\u003edns (NPMI 0.22)"}, {"color": "#636363", "font": {"color": "black"}, "id": "describe", "label": "describe", "shape": "dot", "size": 22.19417475725681, "title": "\u003cb\u003edescribe\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 143\u003cbr\u003eCommunaut\u00e9 : 5\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003escenario (NPMI 0.36)\u003cbr\u003eattacker (NPMI 0.22)"}, {"color": "#636363", "font": {"color": "black"}, "id": "abuse", "label": "abuse", "shape": "dot", "size": 14.912621359216232, "title": "\u003cb\u003eabuse\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 68\u003cbr\u003eCommunaut\u00e9 : 5\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eattacker (NPMI 0.24)\u003cbr\u003efeature (NPMI 0.21)"}, {"color": "#756bb1", "font": {"color": "black"}, "id": "exploitation", "label": "exploitation", "shape": "dot", "size": 23.26213592230276, "title": "\u003cb\u003eexploitation\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 154\u003cbr\u003eCommunaut\u00e9 : 3\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edevelop (NPMI 0.22)\u003cbr\u003econstruct (NPMI 0.21)"}, {"color": "#756bb1", "font": {"color": "black"}, "id": "construct", "label": "construct", "shape": "dot", "size": 18.31067961163517, "title": "\u003cb\u003econstruct\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 103\u003cbr\u003eCommunaut\u00e9 : 3\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ereliable (NPMI 0.34)\u003cbr\u003ework (NPMI 0.28)\u003cbr\u003eframework (NPMI 0.25)\u003cbr\u003eleverage (NPMI 0.24)\u003cbr\u003eexploitation (NPMI 0.21)"}, {"color": "#756bb1", "font": {"color": "black"}, "id": "develop", "label": "develop", "shape": "dot", "size": 16.951456310667595, "title": "\u003cb\u003edevelop\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 89\u003cbr\u003eCommunaut\u00e9 : 3\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eleverage (NPMI 0.27)\u003cbr\u003eautomate (NPMI 0.26)\u003cbr\u003etool (NPMI 0.23)\u003cbr\u003eexploitation (NPMI 0.22)\u003cbr\u003epayload (NPMI 0.22)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "evade", "label": "evade", "shape": "dot", "size": 13.359223300967574, "title": "\u003cb\u003eevade\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 52\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edetection (NPMI 0.33)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "machine", "label": "machine", "shape": "dot", "size": 13.359223300967574, "title": "\u003cb\u003emachine\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 52\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003emodel (NPMI 0.30)\u003cbr\u003edetection (NPMI 0.25)\u003cbr\u003edesign (NPMI 0.23)\u003cbr\u003eidentify (NPMI 0.21)"}, {"color": "#636363", "font": {"color": "black"}, "id": "dns", "label": "dns", "shape": "dot", "size": 13.06796116504595, "title": "\u003cb\u003edns\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 49\u003cbr\u003eCommunaut\u00e9 : 5\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eserver (NPMI 0.23)\u003cbr\u003euse (NPMI 0.22)\u003cbr\u003ec2 (NPMI 0.21)"}, {"color": "#636363", "font": {"color": "black"}, "id": "scenario", "label": "scenario", "shape": "dot", "size": 15.495145631059478, "title": "\u003cb\u003escenario\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 74\u003cbr\u003eCommunaut\u00e9 : 5\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edescribe (NPMI 0.36)\u003cbr\u003esqli (NPMI 0.27)\u003cbr\u003eprovide (NPMI 0.22)"}, {"color": "#8c564b", "font": {"color": "black"}, "id": "achieve", "label": "achieve", "shape": "dot", "size": 21.12621359221086, "title": "\u003cb\u003eachieve\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 132\u003cbr\u003eCommunaut\u00e9 : 8\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003earbitrary (NPMI 0.30)\u003cbr\u003eexecution (NPMI 0.26)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "architecture", "label": "architecture", "shape": "dot", "size": 12.291262135921624, "title": "\u003cb\u003earchitecture\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 41\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003etrust (NPMI 0.38)\u003cbr\u003edesign (NPMI 0.24)"}, {"color": "#31a354", "font": {"color": "black"}, "id": "chain", "label": "chain", "shape": "dot", "size": 20.834951456289236, "title": "\u003cb\u003echain\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 129\u003cbr\u003eCommunaut\u00e9 : 2\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003erop (NPMI 0.27)\u003cbr\u003egadget (NPMI 0.23)\u003cbr\u003emultiple (NPMI 0.21)\u003cbr\u003econstruct (NPMI 0.21)"}, {"color": "#31a354", "font": {"color": "black"}, "id": "multiple", "label": "multiple", "shape": "dot", "size": 13.553398058248657, "title": "\u003cb\u003emultiple\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 54\u003cbr\u003eCommunaut\u00e9 : 2\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003echain (NPMI 0.21)\u003cbr\u003ecombine (NPMI 0.20)"}, {"color": "#31a354", "font": {"color": "black"}, "id": "rop", "label": "rop", "shape": "dot", "size": 13.06796116504595, "title": "\u003cb\u003erop\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 49\u003cbr\u003eCommunaut\u00e9 : 2\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003egadget (NPMI 0.34)\u003cbr\u003echain (NPMI 0.27)"}, {"color": "#31a354", "font": {"color": "black"}, "id": "gadget", "label": "gadget", "shape": "dot", "size": 12.0, "title": "\u003cb\u003egadget\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 38\u003cbr\u003eCommunaut\u00e9 : 2\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003erop (NPMI 0.34)\u003cbr\u003echain (NPMI 0.23)"}, {"color": "#de2d26", "font": {"color": "black"}, "id": "injection", "label": "injection", "shape": "dot", "size": 20.34951456308653, "title": "\u003cb\u003einjection\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 124\u003cbr\u003eCommunaut\u00e9 : 4\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edll (NPMI 0.21)"}, {"color": "#de2d26", "font": {"color": "black"}, "id": "dll", "label": "dll", "shape": "dot", "size": 13.456310679608116, "title": "\u003cb\u003edll\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 53\u003cbr\u003eCommunaut\u00e9 : 4\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ehijacking (NPMI 0.46)\u003cbr\u003einjection (NPMI 0.21)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "network", "label": "network", "shape": "dot", "size": 19.864077669883827, "title": "\u003cb\u003enetwork\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 119\u003cbr\u003eCommunaut\u00e9 : 1\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003etraffic (NPMI 0.27)\u003cbr\u003eiot (NPMI 0.21)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "traffic", "label": "traffic", "shape": "dot", "size": 12.679611650483787, "title": "\u003cb\u003etraffic\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 45\u003cbr\u003eCommunaut\u00e9 : 1\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003elegitimate (NPMI 0.29)\u003cbr\u003enetwork (NPMI 0.27)\u003cbr\u003epattern (NPMI 0.27)\u003cbr\u003esecure (NPMI 0.26)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "iot", "label": "iot", "shape": "dot", "size": 12.291262135921624, "title": "\u003cb\u003eiot\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 41\u003cbr\u003eCommunaut\u00e9 : 1\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edevice (NPMI 0.42)\u003cbr\u003ec2 (NPMI 0.22)\u003cbr\u003enetwork (NPMI 0.21)"}, {"color": "#de2d26", "font": {"color": "black"}, "id": "application", "label": "application", "shape": "dot", "size": 19.766990291243285, "title": "\u003cb\u003eapplication\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 118\u003cbr\u003eCommunaut\u00e9 : 4\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eweb (NPMI 0.36)\u003cbr\u003esession (NPMI 0.21)"}, {"color": "#de2d26", "font": {"color": "black"}, "id": "session", "label": "session", "shape": "dot", "size": 13.06796116504595, "title": "\u003cb\u003esession\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 49\u003cbr\u003eCommunaut\u00e9 : 4\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ehijacking (NPMI 0.26)\u003cbr\u003ebrowser (NPMI 0.23)\u003cbr\u003etoken (NPMI 0.22)\u003cbr\u003euser (NPMI 0.21)\u003cbr\u003eapplication (NPMI 0.21)"}, {"color": "#de2d26", "font": {"color": "black"}, "id": "web", "label": "web", "shape": "dot", "size": 12.776699029124329, "title": "\u003cb\u003eweb\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 46\u003cbr\u003eCommunaut\u00e9 : 4\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eapplication (NPMI 0.36)"}, {"color": "#e377c2", "font": {"color": "black"}, "id": "key", "label": "key", "shape": "dot", "size": 19.28155339804058, "title": "\u003cb\u003ekey\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 113\u003cbr\u003eCommunaut\u00e9 : 9\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eextract (NPMI 0.38)\u003cbr\u003ecryptographic (NPMI 0.25)\u003cbr\u003eencryption (NPMI 0.24)\u003cbr\u003emanagement (NPMI 0.23)\u003cbr\u003ecache (NPMI 0.20)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "cryptographic", "label": "cryptographic", "shape": "dot", "size": 13.553398058248657, "title": "\u003cb\u003ecryptographic\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 54\u003cbr\u003eCommunaut\u00e9 : 1\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eprotocol (NPMI 0.28)\u003cbr\u003ekey (NPMI 0.25)"}, {"color": "#e377c2", "font": {"color": "black"}, "id": "cache", "label": "cache", "shape": "dot", "size": 13.456310679608116, "title": "\u003cb\u003ecache\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 53\u003cbr\u003eCommunaut\u00e9 : 9\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ekey (NPMI 0.20)"}, {"color": "#e377c2", "font": {"color": "black"}, "id": "encryption", "label": "encryption", "shape": "dot", "size": 12.776699029124329, "title": "\u003cb\u003eencryption\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 46\u003cbr\u003eCommunaut\u00e9 : 9\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ekey (NPMI 0.24)"}, {"color": "#e377c2", "font": {"color": "black"}, "id": "extract", "label": "extract", "shape": "dot", "size": 12.097087378640541, "title": "\u003cb\u003eextract\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 39\u003cbr\u003eCommunaut\u00e9 : 9\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ekey (NPMI 0.38)"}, {"color": "#e377c2", "font": {"color": "black"}, "id": "management", "label": "management", "shape": "dot", "size": 12.0, "title": "\u003cb\u003emanagement\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 38\u003cbr\u003eCommunaut\u00e9 : 9\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ekey (NPMI 0.23)"}, {"color": "#e7ba52", "font": {"color": "black"}, "id": "api", "label": "api", "shape": "dot", "size": 19.087378640759496, "title": "\u003cb\u003eapi\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 111\u003cbr\u003eCommunaut\u00e9 : 16\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ecompare (NPMI 0.24)"}, {"color": "#e7ba52", "font": {"color": "black"}, "id": "compare", "label": "compare", "shape": "dot", "size": 12.87378640776487, "title": "\u003cb\u003ecompare\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 47\u003cbr\u003eCommunaut\u00e9 : 16\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eapi (NPMI 0.24)"}, {"color": "#756bb1", "font": {"color": "black"}, "id": "framework", "label": "framework", "shape": "dot", "size": 15.398058252418936, "title": "\u003cb\u003eframework\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 73\u003cbr\u003eCommunaut\u00e9 : 3\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003econstruct (NPMI 0.25)\u003cbr\u003emathematical (NPMI 0.25)"}, {"color": "#756bb1", "font": {"color": "black"}, "id": "leverage", "label": "leverage", "shape": "dot", "size": 12.970873786405411, "title": "\u003cb\u003eleverage\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 48\u003cbr\u003eCommunaut\u00e9 : 3\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edevelop (NPMI 0.27)\u003cbr\u003econstruct (NPMI 0.24)"}, {"color": "#756bb1", "font": {"color": "black"}, "id": "reliable", "label": "reliable", "shape": "dot", "size": 12.87378640776487, "title": "\u003cb\u003ereliable\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 47\u003cbr\u003eCommunaut\u00e9 : 3\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003econstruct (NPMI 0.34)\u003cbr\u003ework (NPMI 0.34)\u003cbr\u003edifferent (NPMI 0.21)"}, {"color": "#756bb1", "font": {"color": "black"}, "id": "work", "label": "work", "shape": "dot", "size": 12.388349514562163, "title": "\u003cb\u003ework\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 42\u003cbr\u003eCommunaut\u00e9 : 3\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edifferent (NPMI 0.34)\u003cbr\u003ereliable (NPMI 0.34)\u003cbr\u003econstruct (NPMI 0.28)"}, {"color": "#17becf", "font": {"color": "black"}, "id": "e.g", "label": "e.g", "shape": "dot", "size": 18.019417475713546, "title": "\u003cb\u003ee.g\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 100\u003cbr\u003eCommunaut\u00e9 : 7\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003euser (NPMI 0.24)\u003cbr\u003eheader (NPMI 0.21)"}, {"color": "#17becf", "font": {"color": "black"}, "id": "user", "label": "user", "shape": "dot", "size": 14.912621359216232, "title": "\u003cb\u003euser\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 68\u003cbr\u003eCommunaut\u00e9 : 7\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003equery (NPMI 0.25)\u003cbr\u003ee.g (NPMI 0.24)\u003cbr\u003esession (NPMI 0.21)\u003cbr\u003eaccount (NPMI 0.21)"}, {"color": "#e7ba52", "font": {"color": "black"}, "id": "header", "label": "header", "shape": "dot", "size": 12.388349514562163, "title": "\u003cb\u003eheader\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 42\u003cbr\u003eCommunaut\u00e9 : 6\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edefense (NPMI 0.33)\u003cbr\u003erequest (NPMI 0.31)\u003cbr\u003eprovide (NPMI 0.23)\u003cbr\u003ee.g (NPMI 0.21)"}, {"color": "#e7ba52", "font": {"color": "black"}, "id": "payload", "label": "payload", "shape": "dot", "size": 17.825242718432463, "title": "\u003cb\u003epayload\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 98\u003cbr\u003eCommunaut\u00e9 : 6\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003exss (NPMI 0.28)\u003cbr\u003econtext (NPMI 0.23)\u003cbr\u003emalicious (NPMI 0.22)\u003cbr\u003edevelop (NPMI 0.22)\u003cbr\u003eprovide (NPMI 0.21)"}, {"color": "#e7ba52", "font": {"color": "black"}, "id": "provide", "label": "provide", "shape": "dot", "size": 15.592233009700019, "title": "\u003cb\u003eprovide\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 75\u003cbr\u003eCommunaut\u00e9 : 6\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eexample (NPMI 0.48)\u003cbr\u003edefense (NPMI 0.23)\u003cbr\u003eheader (NPMI 0.23)\u003cbr\u003escenario (NPMI 0.22)\u003cbr\u003epayload (NPMI 0.21)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "malicious", "label": "malicious", "shape": "dot", "size": 13.262135922327033, "title": "\u003cb\u003emalicious\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 51\u003cbr\u003eCommunaut\u00e9 : 1\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003elegitimate (NPMI 0.22)\u003cbr\u003epayload (NPMI 0.22)"}, {"color": "#e7ba52", "font": {"color": "black"}, "id": "context", "label": "context", "shape": "dot", "size": 12.388349514562163, "title": "\u003cb\u003econtext\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 42\u003cbr\u003eCommunaut\u00e9 : 6\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003epayload (NPMI 0.23)"}, {"color": "#756bb1", "font": {"color": "black"}, "id": "different", "label": "different", "shape": "dot", "size": 17.825242718432463, "title": "\u003cb\u003edifferent\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 98\u003cbr\u003eCommunaut\u00e9 : 3\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ework (NPMI 0.34)\u003cbr\u003ecalculate (NPMI 0.28)\u003cbr\u003econfiguration (NPMI 0.25)\u003cbr\u003ereliable (NPMI 0.21)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "calculate", "label": "calculate", "shape": "dot", "size": 12.388349514562163, "title": "\u003cb\u003ecalculate\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 42\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003erequire (NPMI 0.34)\u003cbr\u003emathematical (NPMI 0.31)\u003cbr\u003edifferent (NPMI 0.28)\u003cbr\u003emodel (NPMI 0.25)"}, {"color": "#756bb1", "font": {"color": "black"}, "id": "configuration", "label": "configuration", "shape": "dot", "size": 12.291262135921624, "title": "\u003cb\u003econfiguration\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 41\u003cbr\u003eCommunaut\u00e9 : 3\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edifferent (NPMI 0.25)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "pattern", "label": "pattern", "shape": "dot", "size": 17.825242718432463, "title": "\u003cb\u003epattern\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 98\u003cbr\u003eCommunaut\u00e9 : 1\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003etraffic (NPMI 0.27)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "rootkit", "label": "rootkit", "shape": "dot", "size": 12.776699029124329, "title": "\u003cb\u003erootkit\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 46\u003cbr\u003eCommunaut\u00e9 : 11\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edetect (NPMI 0.22)"}, {"color": "#31a354", "font": {"color": "black"}, "id": "combine", "label": "combine", "shape": "dot", "size": 12.0, "title": "\u003cb\u003ecombine\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 38\u003cbr\u003eCommunaut\u00e9 : 2\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eadvanced (NPMI 0.22)\u003cbr\u003emultiple (NPMI 0.20)"}, {"color": "#de2d26", "font": {"color": "black"}, "id": "mechanism", "label": "mechanism", "shape": "dot", "size": 17.436893203870298, "title": "\u003cb\u003emechanism\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 94\u003cbr\u003eCommunaut\u00e9 : 14\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003epersistence (NPMI 0.25)"}, {"color": "#de2d26", "font": {"color": "black"}, "id": "persistence", "label": "persistence", "shape": "dot", "size": 12.970873786405411, "title": "\u003cb\u003epersistence\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 48\u003cbr\u003eCommunaut\u00e9 : 14\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003emechanism (NPMI 0.25)\u003cbr\u003emaintain (NPMI 0.25)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "identify", "label": "identify", "shape": "dot", "size": 17.436893203870298, "title": "\u003cb\u003eidentify\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 94\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003emachine (NPMI 0.21)"}, {"color": "#17becf", "font": {"color": "black"}, "id": "service", "label": "service", "shape": "dot", "size": 17.339805825229757, "title": "\u003cb\u003eservice\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 93\u003cbr\u003eCommunaut\u00e9 : 7\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eaccount (NPMI 0.23)"}, {"color": "#17becf", "font": {"color": "black"}, "id": "account", "label": "account", "shape": "dot", "size": 12.485436893202705, "title": "\u003cb\u003eaccount\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 43\u003cbr\u003eCommunaut\u00e9 : 7\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003epassword (NPMI 0.31)\u003cbr\u003ecompromise (NPMI 0.28)\u003cbr\u003eservice (NPMI 0.23)\u003cbr\u003euser (NPMI 0.21)"}, {"color": "#e7ba52", "font": {"color": "black"}, "id": "request", "label": "request", "shape": "dot", "size": 16.951456310667595, "title": "\u003cb\u003erequest\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 89\u003cbr\u003eCommunaut\u00e9 : 6\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eheader (NPMI 0.31)\u003cbr\u003edefense (NPMI 0.28)\u003cbr\u003eserver (NPMI 0.23)"}, {"color": "#636363", "font": {"color": "black"}, "id": "server", "label": "server", "shape": "dot", "size": 15.883495145621643, "title": "\u003cb\u003eserver\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 78\u003cbr\u003eCommunaut\u00e9 : 5\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003erequest (NPMI 0.23)\u003cbr\u003edns (NPMI 0.23)"}, {"color": "#e7ba52", "font": {"color": "black"}, "id": "defense", "label": "defense", "shape": "dot", "size": 12.485436893202705, "title": "\u003cb\u003edefense\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 43\u003cbr\u003eCommunaut\u00e9 : 6\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eheader (NPMI 0.33)\u003cbr\u003erequest (NPMI 0.28)\u003cbr\u003eprovide (NPMI 0.23)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "protocol", "label": "protocol", "shape": "dot", "size": 16.951456310667595, "title": "\u003cb\u003eprotocol\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 89\u003cbr\u003eCommunaut\u00e9 : 1\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ec2 (NPMI 0.31)\u003cbr\u003ecommunication (NPMI 0.29)\u003cbr\u003ecryptographic (NPMI 0.28)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "c2", "label": "c2", "shape": "dot", "size": 15.495145631059478, "title": "\u003cb\u003ec2\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 74\u003cbr\u003eCommunaut\u00e9 : 1\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ecommunication (NPMI 0.36)\u003cbr\u003eprotocol (NPMI 0.31)\u003cbr\u003echannel (NPMI 0.26)\u003cbr\u003eiot (NPMI 0.22)\u003cbr\u003edns (NPMI 0.21)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "communication", "label": "communication", "shape": "dot", "size": 13.844660194170281, "title": "\u003cb\u003ecommunication\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 57\u003cbr\u003eCommunaut\u00e9 : 1\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ec2 (NPMI 0.36)\u003cbr\u003eprotocol (NPMI 0.29)\u003cbr\u003echannel (NPMI 0.26)"}, {"color": "#756bb1", "font": {"color": "black"}, "id": "tool", "label": "tool", "shape": "dot", "size": 14.233009708732444, "title": "\u003cb\u003etool\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 61\u003cbr\u003eCommunaut\u00e9 : 3\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eautomate (NPMI 0.28)\u003cbr\u003edevelop (NPMI 0.23)\u003cbr\u003elike (NPMI 0.22)"}, {"color": "#756bb1", "font": {"color": "black"}, "id": "automate", "label": "automate", "shape": "dot", "size": 12.679611650483787, "title": "\u003cb\u003eautomate\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 45\u003cbr\u003eCommunaut\u00e9 : 3\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003etool (NPMI 0.28)\u003cbr\u003edevelop (NPMI 0.26)"}, {"color": "#de2d26", "font": {"color": "black"}, "id": "token", "label": "token", "shape": "dot", "size": 16.854368932027054, "title": "\u003cb\u003etoken\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 88\u003cbr\u003eCommunaut\u00e9 : 4\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eaccess (NPMI 0.28)\u003cbr\u003ehandle (NPMI 0.23)\u003cbr\u003esession (NPMI 0.22)"}, {"color": "#de2d26", "font": {"color": "black"}, "id": "access", "label": "access", "shape": "dot", "size": 15.786407766981101, "title": "\u003cb\u003eaccess\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 77\u003cbr\u003eCommunaut\u00e9 : 4\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003etoken (NPMI 0.28)\u003cbr\u003epersistent (NPMI 0.23)"}, {"color": "#de2d26", "font": {"color": "black"}, "id": "handle", "label": "handle", "shape": "dot", "size": 12.0, "title": "\u003cb\u003ehandle\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 38\u003cbr\u003eCommunaut\u00e9 : 4\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003etoken (NPMI 0.23)"}, {"color": "#17becf", "font": {"color": "black"}, "id": "control", "label": "control", "shape": "dot", "size": 16.66019417474597, "title": "\u003cb\u003econtrol\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 86\u003cbr\u003eCommunaut\u00e9 : 17\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eflow (NPMI 0.39)"}, {"color": "#17becf", "font": {"color": "black"}, "id": "flow", "label": "flow", "shape": "dot", "size": 15.495145631059478, "title": "\u003cb\u003eflow\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 74\u003cbr\u003eCommunaut\u00e9 : 17\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003econtrol (NPMI 0.39)"}, {"color": "#e7ba52", "font": {"color": "black"}, "id": "example", "label": "example", "shape": "dot", "size": 12.679611650483787, "title": "\u003cb\u003eexample\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 45\u003cbr\u003eCommunaut\u00e9 : 6\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eprovide (NPMI 0.48)\u003cbr\u003exss (NPMI 0.20)"}, {"color": "#636363", "font": {"color": "black"}, "id": "like", "label": "like", "shape": "dot", "size": 16.271844660183806, "title": "\u003cb\u003elike\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 82\u003cbr\u003eCommunaut\u00e9 : 5\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003efeature (NPMI 0.28)\u003cbr\u003etool (NPMI 0.22)"}, {"color": "#636363", "font": {"color": "black"}, "id": "feature", "label": "feature", "shape": "dot", "size": 12.388349514562163, "title": "\u003cb\u003efeature\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 42\u003cbr\u003eCommunaut\u00e9 : 5\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003elike (NPMI 0.28)\u003cbr\u003eabuse (NPMI 0.21)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "environment", "label": "environment", "shape": "dot", "size": 16.174757281543265, "title": "\u003cb\u003eenvironment\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 81\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003etrust (NPMI 0.23)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "trust", "label": "trust", "shape": "dot", "size": 12.194174757281083, "title": "\u003cb\u003etrust\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 40\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003earchitecture (NPMI 0.38)\u003cbr\u003eenvironment (NPMI 0.23)"}, {"color": "#de2d26", "font": {"color": "black"}, "id": "maintain", "label": "maintain", "shape": "dot", "size": 16.174757281543265, "title": "\u003cb\u003emaintain\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 81\u003cbr\u003eCommunaut\u00e9 : 14\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003epersistence (NPMI 0.25)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "manipulation", "label": "manipulation", "shape": "dot", "size": 16.077669902902723, "title": "\u003cb\u003emanipulation\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 80\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eobject (NPMI 0.24)\u003cbr\u003eheap (NPMI 0.21)\u003cbr\u003erequire (NPMI 0.21)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "heap", "label": "heap", "shape": "dot", "size": 15.883495145621643, "title": "\u003cb\u003eheap\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 78\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003emanipulation (NPMI 0.21)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "object", "label": "object", "shape": "dot", "size": 12.776699029124329, "title": "\u003cb\u003eobject\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 46\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003emanipulation (NPMI 0.24)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "require", "label": "require", "shape": "dot", "size": 12.0, "title": "\u003cb\u003erequire\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 38\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ecalculate (NPMI 0.34)\u003cbr\u003emanipulation (NPMI 0.21)"}, {"color": "#de2d26", "font": {"color": "black"}, "id": "persistent", "label": "persistent", "shape": "dot", "size": 12.291262135921624, "title": "\u003cb\u003epersistent\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 41\u003cbr\u003eCommunaut\u00e9 : 4\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eaccess (NPMI 0.23)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "modern", "label": "modern", "shape": "dot", "size": 15.592233009700019, "title": "\u003cb\u003emodern\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 75\u003cbr\u003eCommunaut\u00e9 : 10\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eprotection (NPMI 0.22)"}, {"color": "#8c564b", "font": {"color": "black"}, "id": "privilege", "label": "privilege", "shape": "dot", "size": 15.592233009700019, "title": "\u003cb\u003eprivilege\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 75\u003cbr\u003eCommunaut\u00e9 : 18\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eescalation (NPMI 0.54)"}, {"color": "#8c564b", "font": {"color": "black"}, "id": "escalation", "label": "escalation", "shape": "dot", "size": 13.262135922327033, "title": "\u003cb\u003eescalation\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 51\u003cbr\u003eCommunaut\u00e9 : 18\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eprivilege (NPMI 0.54)"}, {"color": "#636363", "font": {"color": "black"}, "id": "sqli", "label": "sqli", "shape": "dot", "size": 12.291262135921624, "title": "\u003cb\u003esqli\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 41\u003cbr\u003eCommunaut\u00e9 : 5\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003escenario (NPMI 0.27)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "channel", "label": "channel", "shape": "dot", "size": 13.94174757281082, "title": "\u003cb\u003echannel\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 58\u003cbr\u003eCommunaut\u00e9 : 1\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ecommunication (NPMI 0.26)\u003cbr\u003ec2 (NPMI 0.26)\u003cbr\u003elegitimate (NPMI 0.24)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "mathematical", "label": "mathematical", "shape": "dot", "size": 12.291262135921624, "title": "\u003cb\u003emathematical\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 41\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003emodel (NPMI 0.39)\u003cbr\u003ecalculate (NPMI 0.31)\u003cbr\u003eframework (NPMI 0.25)"}, {"color": "#17becf", "font": {"color": "black"}, "id": "query", "label": "query", "shape": "dot", "size": 12.388349514562163, "title": "\u003cb\u003equery\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 42\u003cbr\u003eCommunaut\u00e9 : 7\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003euser (NPMI 0.25)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "threat", "label": "threat", "shape": "dot", "size": 14.81553398057569, "title": "\u003cb\u003ethreat\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 67\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003emodel (NPMI 0.21)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "model", "label": "model", "shape": "dot", "size": 13.74757281552974, "title": "\u003cb\u003emodel\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 56\u003cbr\u003eCommunaut\u00e9 : 0\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003emathematical (NPMI 0.39)\u003cbr\u003emachine (NPMI 0.30)\u003cbr\u003ecalculate (NPMI 0.25)\u003cbr\u003ethreat (NPMI 0.21)"}, {"color": "#e377c2", "font": {"color": "black"}, "id": "prevent", "label": "prevent", "shape": "dot", "size": 14.621359223294608, "title": "\u003cb\u003eprevent\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 65\u003cbr\u003eCommunaut\u00e9 : 19\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003evalidation (NPMI 0.23)"}, {"color": "#e377c2", "font": {"color": "black"}, "id": "validation", "label": "validation", "shape": "dot", "size": 12.194174757281083, "title": "\u003cb\u003evalidation\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 40\u003cbr\u003eCommunaut\u00e9 : 19\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eprevent (NPMI 0.23)"}, {"color": "#de2d26", "font": {"color": "black"}, "id": "hijacking", "label": "hijacking", "shape": "dot", "size": 14.135922330091903, "title": "\u003cb\u003ehijacking\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 60\u003cbr\u003eCommunaut\u00e9 : 4\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003edll (NPMI 0.46)\u003cbr\u003esession (NPMI 0.26)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "legitimate", "label": "legitimate", "shape": "dot", "size": 12.776699029124329, "title": "\u003cb\u003elegitimate\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 46\u003cbr\u003eCommunaut\u00e9 : 1\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003etraffic (NPMI 0.29)\u003cbr\u003echannel (NPMI 0.24)\u003cbr\u003emalicious (NPMI 0.22)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "algorithm", "label": "algorithm", "shape": "dot", "size": 13.74757281552974, "title": "\u003cb\u003ealgorithm\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 56\u003cbr\u003eCommunaut\u00e9 : 20\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003egeneration (NPMI 0.26)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "generation", "label": "generation", "shape": "dot", "size": 12.291262135921624, "title": "\u003cb\u003egeneration\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 41\u003cbr\u003eCommunaut\u00e9 : 20\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ealgorithm (NPMI 0.26)"}, {"color": "#17becf", "font": {"color": "black"}, "id": "compromise", "label": "compromise", "shape": "dot", "size": 13.553398058248657, "title": "\u003cb\u003ecompromise\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 54\u003cbr\u003eCommunaut\u00e9 : 7\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eaccount (NPMI 0.28)\u003cbr\u003ecredential (NPMI 0.26)"}, {"color": "#17becf", "font": {"color": "black"}, "id": "credential", "label": "credential", "shape": "dot", "size": 12.388349514562163, "title": "\u003cb\u003ecredential\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 42\u003cbr\u003eCommunaut\u00e9 : 7\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003ecompromise (NPMI 0.26)"}, {"color": "#e6550d", "font": {"color": "black"}, "id": "stack", "label": "stack", "shape": "dot", "size": 13.06796116504595, "title": "\u003cb\u003estack\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 49\u003cbr\u003eCommunaut\u00e9 : 10\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eprotection (NPMI 0.22)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "device", "label": "device", "shape": "dot", "size": 13.165048543686492, "title": "\u003cb\u003edevice\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 50\u003cbr\u003eCommunaut\u00e9 : 1\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eiot (NPMI 0.42)"}, {"color": "#de2d26", "font": {"color": "black"}, "id": "browser", "label": "browser", "shape": "dot", "size": 12.87378640776487, "title": "\u003cb\u003ebrowser\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 47\u003cbr\u003eCommunaut\u00e9 : 4\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003esession (NPMI 0.23)"}, {"color": "#8c564b", "font": {"color": "black"}, "id": "structure", "label": "structure", "shape": "dot", "size": 12.291262135921624, "title": "\u003cb\u003estructure\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 41\u003cbr\u003eCommunaut\u00e9 : 8\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eenable (NPMI 0.26)\u003cbr\u003earbitrary (NPMI 0.21)"}, {"color": "#3182bd", "font": {"color": "black"}, "id": "secure", "label": "secure", "shape": "dot", "size": 12.87378640776487, "title": "\u003cb\u003esecure\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 47\u003cbr\u003eCommunaut\u00e9 : 1\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003etraffic (NPMI 0.26)"}, {"color": "#17becf", "font": {"color": "black"}, "id": "password", "label": "password", "shape": "dot", "size": 12.291262135921624, "title": "\u003cb\u003epassword\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 41\u003cbr\u003eCommunaut\u00e9 : 7\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003eaccount (NPMI 0.31)"}, {"color": "#8c564b", "font": {"color": "black"}, "id": "enable", "label": "enable", "shape": "dot", "size": 12.194174757281083, "title": "\u003cb\u003eenable\u003c/b\u003e\u003cbr\u003eFr\u00e9quence : 40\u003cbr\u003eCommunaut\u00e9 : 8\u003cbr\u003e\u003cbr\u003e\u003ci\u003eAssociations fortes :\u003c/i\u003e\u003cbr\u003estructure (NPMI 0.26)"}]);
+                  edges = new vis.DataSet([{"from": "implement", "title": "NPMI = 0.22 | co-occurrences = 84", "to": "process", "value": 0.2151977715057318}, {"from": "exploit", "title": "NPMI = 0.27 | co-occurrences = 33", "to": "comprehensive", "value": 0.2691619322820488}, {"from": "comprehensive", "title": "NPMI = 0.28 | co-occurrences = 28", "to": "technique", "value": 0.2784158656850062}, {"from": "comprehensive", "title": "NPMI = 0.42 | co-occurrences = 30", "to": "methodology", "value": 0.41776235556419694}, {"from": "vulnerability", "title": "NPMI = 0.20 | co-occurrences = 35", "to": "methodology", "value": 0.20359808595167703}, {"from": "vulnerability", "title": "NPMI = 0.21 | co-occurrences = 29", "to": "xss", "value": 0.2054399008950305}, {"from": "xss", "title": "NPMI = 0.28 | co-occurrences = 19", "to": "payload", "value": 0.2849825730092691}, {"from": "xss", "title": "NPMI = 0.20 | co-occurrences = 6", "to": "example", "value": 0.20199429668871985}, {"from": "implementation", "title": "NPMI = 0.36 | co-occurrences = 104", "to": "detail", "value": 0.3610212059195882}, {"from": "detail", "title": "NPMI = 0.47 | co-occurrences = 110", "to": "technical", "value": 0.4657695767157716}, {"from": "technique", "title": "NPMI = 0.30 | co-occurrences = 45", "to": "advanced", "value": 0.3016229866153714}, {"from": "advanced", "title": "NPMI = 0.29 | co-occurrences = 34", "to": "method", "value": 0.29407397549690273}, {"from": "advanced", "title": "NPMI = 0.22 | co-occurrences = 7", "to": "combine", "value": 0.2233859879407248}, {"from": "bypass", "title": "NPMI = 0.24 | co-occurrences = 23", "to": "protection", "value": 0.23943478759433606}, {"from": "protection", "title": "NPMI = 0.22 | co-occurrences = 8", "to": "modern", "value": 0.22258917073870535}, {"from": "protection", "title": "NPMI = 0.22 | co-occurrences = 5", "to": "stack", "value": 0.2187371296103607}, {"from": "perform", "title": "NPMI = 0.22 | co-occurrences = 41", "to": "analysis", "value": 0.21864988008664082}, {"from": "analysis", "title": "NPMI = 0.24 | co-occurrences = 24", "to": "detect", "value": 0.24129998399325858}, {"from": "system", "title": "NPMI = 0.25 | co-occurrences = 35", "to": "detection", "value": 0.24758156812812976}, {"from": "system", "title": "NPMI = 0.22 | co-occurrences = 22", "to": "design", "value": 0.2207308750768808}, {"from": "detection", "title": "NPMI = 0.33 | co-occurrences = 25", "to": "evade", "value": 0.3274187181043555}, {"from": "detection", "title": "NPMI = 0.25 | co-occurrences = 13", "to": "machine", "value": 0.25354357971386887}, {"from": "design", "title": "NPMI = 0.23 | co-occurrences = 8", "to": "machine", "value": 0.22644048707272854}, {"from": "design", "title": "NPMI = 0.24 | co-occurrences = 7", "to": "architecture", "value": 0.24216490975677676}, {"from": "detect", "title": "NPMI = 0.22 | co-occurrences = 8", "to": "rootkit", "value": 0.21581954860502575}, {"from": "security", "title": "NPMI = 0.29 | co-occurrences = 13", "to": "policy", "value": 0.2886167341683393}, {"from": "security", "title": "NPMI = 0.22 | co-occurrences = 9", "to": "module", "value": 0.21619464983538014}, {"from": "code", "title": "NPMI = 0.36 | co-occurrences = 55", "to": "execution", "value": 0.36141484194357787}, {"from": "code", "title": "NPMI = 0.26 | co-occurrences = 20", "to": "arbitrary", "value": 0.25804157608789074}, {"from": "execution", "title": "NPMI = 0.26 | co-occurrences = 32", "to": "achieve", "value": 0.2615448243183998}, {"from": "execution", "title": "NPMI = 0.30 | co-occurrences = 17", "to": "arbitrary", "value": 0.2952317107687787}, {"from": "arbitrary", "title": "NPMI = 0.30 | co-occurrences = 25", "to": "achieve", "value": 0.29695762619101956}, {"from": "arbitrary", "title": "NPMI = 0.21 | co-occurrences = 5", "to": "structure", "value": 0.21316973676862458}, {"from": "attacker", "title": "NPMI = 0.28 | co-occurrences = 44", "to": "use", "value": 0.2810306769887505}, {"from": "attacker", "title": "NPMI = 0.22 | co-occurrences = 29", "to": "describe", "value": 0.22111713469434008}, {"from": "attacker", "title": "NPMI = 0.24 | co-occurrences = 18", "to": "abuse", "value": 0.23769251007456527}, {"from": "use", "title": "NPMI = 0.22 | co-occurrences = 11", "to": "dns", "value": 0.22486419510449465}, {"from": "describe", "title": "NPMI = 0.36 | co-occurrences = 34", "to": "scenario", "value": 0.35719375669268416}, {"from": "abuse", "title": "NPMI = 0.21 | co-occurrences = 5", "to": "feature", "value": 0.21176644273496958}, {"from": "exploitation", "title": "NPMI = 0.21 | co-occurrences = 19", "to": "construct", "value": 0.21171791576871357}, {"from": "exploitation", "title": "NPMI = 0.22 | co-occurrences = 18", "to": "develop", "value": 0.22458598397522925}, {"from": "construct", "title": "NPMI = 0.21 | co-occurrences = 17", "to": "chain", "value": 0.2079217393909098}, {"from": "construct", "title": "NPMI = 0.25 | co-occurrences = 13", "to": "framework", "value": 0.2510349639369445}, {"from": "construct", "title": "NPMI = 0.24 | co-occurrences = 9", "to": "leverage", "value": 0.23576996517104945}, {"from": "construct", "title": "NPMI = 0.34 | co-occurrences = 17", "to": "reliable", "value": 0.3406589712323997}, {"from": "construct", "title": "NPMI = 0.28 | co-occurrences = 11", "to": "work", "value": 0.2837094782486781}, {"from": "develop", "title": "NPMI = 0.22 | co-occurrences = 11", "to": "payload", "value": 0.2194222467382345}, {"from": "develop", "title": "NPMI = 0.23 | co-occurrences = 8", "to": "tool", "value": 0.22893098190258052}, {"from": "develop", "title": "NPMI = 0.27 | co-occurrences = 10", "to": "leverage", "value": 0.2709589181093835}, {"from": "develop", "title": "NPMI = 0.26 | co-occurrences = 8", "to": "automate", "value": 0.2599777540503055}, {"from": "machine", "title": "NPMI = 0.21 | co-occurrences = 7", "to": "identify", "value": 0.20780097972429656}, {"from": "machine", "title": "NPMI = 0.30 | co-occurrences = 9", "to": "model", "value": 0.3030934051004413}, {"from": "dns", "title": "NPMI = 0.23 | co-occurrences = 6", "to": "server", "value": 0.22624017828766402}, {"from": "dns", "title": "NPMI = 0.21 | co-occurrences = 6", "to": "c2", "value": 0.20808473068448957}, {"from": "scenario", "title": "NPMI = 0.22 | co-occurrences = 10", "to": "provide", "value": 0.22193404409228337}, {"from": "scenario", "title": "NPMI = 0.27 | co-occurrences = 7", "to": "sqli", "value": 0.2691711973641567}, {"from": "architecture", "title": "NPMI = 0.38 | co-occurrences = 8", "to": "trust", "value": 0.3770544523070848}, {"from": "chain", "title": "NPMI = 0.21 | co-occurrences = 14", "to": "multiple", "value": 0.2129213922285908}, {"from": "chain", "title": "NPMI = 0.27 | co-occurrences = 18", "to": "rop", "value": 0.26999792346918294}, {"from": "chain", "title": "NPMI = 0.23 | co-occurrences = 11", "to": "gadget", "value": 0.23268726394365674}, {"from": "multiple", "title": "NPMI = 0.20 | co-occurrences = 5", "to": "combine", "value": 0.2049142640429998}, {"from": "rop", "title": "NPMI = 0.34 | co-occurrences = 10", "to": "gadget", "value": 0.3399502322348707}, {"from": "injection", "title": "NPMI = 0.21 | co-occurrences = 11", "to": "dll", "value": 0.21140562149729866}, {"from": "dll", "title": "NPMI = 0.46 | co-occurrences = 30", "to": "hijacking", "value": 0.4564784287797477}, {"from": "network", "title": "NPMI = 0.27 | co-occurrences = 14", "to": "traffic", "value": 0.2702450056469853}, {"from": "network", "title": "NPMI = 0.21 | co-occurrences = 9", "to": "iot", "value": 0.20862202159615115}, {"from": "traffic", "title": "NPMI = 0.27 | co-occurrences = 11", "to": "pattern", "value": 0.26955513863793845}, {"from": "traffic", "title": "NPMI = 0.26 | co-occurrences = 6", "to": "secure", "value": 0.26174091978033037}, {"from": "traffic", "title": "NPMI = 0.29 | co-occurrences = 9", "to": "legitimate", "value": 0.29088347222919136}, {"from": "iot", "title": "NPMI = 0.22 | co-occurrences = 7", "to": "c2", "value": 0.2162999450283169}, {"from": "iot", "title": "NPMI = 0.42 | co-occurrences = 18", "to": "device", "value": 0.4194842691708845}, {"from": "application", "title": "NPMI = 0.21 | co-occurrences = 8", "to": "session", "value": 0.2080002773996294}, {"from": "application", "title": "NPMI = 0.36 | co-occurrences = 24", "to": "web", "value": 0.36150770553553513}, {"from": "session", "title": "NPMI = 0.22 | co-occurrences = 7", "to": "token", "value": 0.2222844093071214}, {"from": "session", "title": "NPMI = 0.21 | co-occurrences = 5", "to": "user", "value": 0.21106162604205445}, {"from": "session", "title": "NPMI = 0.26 | co-occurrences = 8", "to": "hijacking", "value": 0.2633559054928323}, {"from": "session", "title": "NPMI = 0.23 | co-occurrences = 5", "to": "browser", "value": 0.232942885501285}, {"from": "key", "title": "NPMI = 0.25 | co-occurrences = 10", "to": "cryptographic", "value": 0.24541606761534351}, {"from": "key", "title": "NPMI = 0.20 | co-occurrences = 9", "to": "cache", "value": 0.20432844473180287}, {"from": "key", "title": "NPMI = 0.24 | co-occurrences = 9", "to": "encryption", "value": 0.24056370735506213}, {"from": "key", "title": "NPMI = 0.38 | co-occurrences = 21", "to": "extract", "value": 0.3808360050927862}, {"from": "key", "title": "NPMI = 0.23 | co-occurrences = 7", "to": "management", "value": 0.2297150768548526}, {"from": "cryptographic", "title": "NPMI = 0.28 | co-occurrences = 12", "to": "protocol", "value": 0.2796187813320925}, {"from": "api", "title": "NPMI = 0.24 | co-occurrences = 7", "to": "compare", "value": 0.2448673375854264}, {"from": "framework", "title": "NPMI = 0.25 | co-occurrences = 6", "to": "mathematical", "value": 0.2461129668625332}, {"from": "reliable", "title": "NPMI = 0.21 | co-occurrences = 9", "to": "different", "value": 0.2103618996292794}, {"from": "reliable", "title": "NPMI = 0.34 | co-occurrences = 11", "to": "work", "value": 0.3370501431445469}, {"from": "work", "title": "NPMI = 0.34 | co-occurrences = 19", "to": "different", "value": 0.3404913051324647}, {"from": "e.g", "title": "NPMI = 0.24 | co-occurrences = 10", "to": "user", "value": 0.24267013288162118}, {"from": "e.g", "title": "NPMI = 0.21 | co-occurrences = 5", "to": "header", "value": 0.20599978870700425}, {"from": "user", "title": "NPMI = 0.21 | co-occurrences = 5", "to": "account", "value": 0.209691378458656}, {"from": "user", "title": "NPMI = 0.25 | co-occurrences = 5", "to": "query", "value": 0.24947249052167572}, {"from": "header", "title": "NPMI = 0.31 | co-occurrences = 9", "to": "request", "value": 0.3109184252210646}, {"from": "header", "title": "NPMI = 0.23 | co-occurrences = 6", "to": "provide", "value": 0.23099154001888905}, {"from": "header", "title": "NPMI = 0.33 | co-occurrences = 6", "to": "defense", "value": 0.3261638491716792}, {"from": "payload", "title": "NPMI = 0.21 | co-occurrences = 12", "to": "provide", "value": 0.21467031342828316}, {"from": "payload", "title": "NPMI = 0.22 | co-occurrences = 9", "to": "malicious", "value": 0.22081855485510238}, {"from": "payload", "title": "NPMI = 0.23 | co-occurrences = 6", "to": "context", "value": 0.22540034314913676}, {"from": "provide", "title": "NPMI = 0.48 | co-occurrences = 32", "to": "example", "value": 0.4803671805299422}, {"from": "provide", "title": "NPMI = 0.23 | co-occurrences = 6", "to": "defense", "value": 0.2346592085203504}, {"from": "malicious", "title": "NPMI = 0.22 | co-occurrences = 6", "to": "legitimate", "value": 0.22303754967993866}, {"from": "different", "title": "NPMI = 0.28 | co-occurrences = 10", "to": "calculate", "value": 0.2771917937428932}, {"from": "different", "title": "NPMI = 0.25 | co-occurrences = 9", "to": "configuration", "value": 0.2538016903134481}, {"from": "calculate", "title": "NPMI = 0.25 | co-occurrences = 5", "to": "model", "value": 0.2549578979294161}, {"from": "calculate", "title": "NPMI = 0.31 | co-occurrences = 5", "to": "mathematical", "value": 0.3097937812450579}, {"from": "calculate", "title": "NPMI = 0.34 | co-occurrences = 7", "to": "require", "value": 0.3432678200711675}, {"from": "mechanism", "title": "NPMI = 0.25 | co-occurrences = 10", "to": "persistence", "value": 0.248584491849698}, {"from": "persistence", "title": "NPMI = 0.25 | co-occurrences = 8", "to": "maintain", "value": 0.24755890577937426}, {"from": "service", "title": "NPMI = 0.23 | co-occurrences = 8", "to": "account", "value": 0.22890811838191288}, {"from": "account", "title": "NPMI = 0.28 | co-occurrences = 8", "to": "compromise", "value": 0.28220174090325817}, {"from": "account", "title": "NPMI = 0.31 | co-occurrences = 7", "to": "password", "value": 0.306305543093096}, {"from": "request", "title": "NPMI = 0.23 | co-occurrences = 9", "to": "server", "value": 0.23160913269542166}, {"from": "request", "title": "NPMI = 0.28 | co-occurrences = 7", "to": "defense", "value": 0.27715334406182324}, {"from": "protocol", "title": "NPMI = 0.31 | co-occurrences = 23", "to": "c2", "value": 0.3147365331163629}, {"from": "protocol", "title": "NPMI = 0.29 | co-occurrences = 16", "to": "communication", "value": 0.2922555793155658}, {"from": "c2", "title": "NPMI = 0.26 | co-occurrences = 11", "to": "channel", "value": 0.2588405068550527}, {"from": "c2", "title": "NPMI = 0.36 | co-occurrences = 21", "to": "communication", "value": 0.358471979400008}, {"from": "communication", "title": "NPMI = 0.26 | co-occurrences = 9", "to": "channel", "value": 0.26418073794070585}, {"from": "tool", "title": "NPMI = 0.22 | co-occurrences = 8", "to": "like", "value": 0.21761345237697488}, {"from": "tool", "title": "NPMI = 0.28 | co-occurrences = 8", "to": "automate", "value": 0.2779520262449765}, {"from": "token", "title": "NPMI = 0.28 | co-occurrences = 16", "to": "access", "value": 0.28410960264666624}, {"from": "token", "title": "NPMI = 0.23 | co-occurrences = 7", "to": "handle", "value": 0.2312157604733856}, {"from": "access", "title": "NPMI = 0.23 | co-occurrences = 7", "to": "persistent", "value": 0.22589260098152883}, {"from": "control", "title": "NPMI = 0.39 | co-occurrences = 31", "to": "flow", "value": 0.38976005809839054}, {"from": "like", "title": "NPMI = 0.28 | co-occurrences = 9", "to": "feature", "value": 0.27831896522667365}, {"from": "environment", "title": "NPMI = 0.23 | co-occurrences = 5", "to": "trust", "value": 0.228343057638641}, {"from": "manipulation", "title": "NPMI = 0.21 | co-occurrences = 10", "to": "heap", "value": 0.2084216255789793}, {"from": "manipulation", "title": "NPMI = 0.24 | co-occurrences = 7", "to": "object", "value": 0.23603219999170105}, {"from": "manipulation", "title": "NPMI = 0.21 | co-occurrences = 5", "to": "require", "value": 0.2080502095839914}, {"from": "privilege", "title": "NPMI = 0.54 | co-occurrences = 51", "to": "escalation", "value": 0.5358274618882828}, {"from": "channel", "title": "NPMI = 0.24 | co-occurrences = 7", "to": "legitimate", "value": 0.23575857918328927}, {"from": "mathematical", "title": "NPMI = 0.39 | co-occurrences = 12", "to": "model", "value": 0.3933826735025817}, {"from": "threat", "title": "NPMI = 0.21 | co-occurrences = 5", "to": "model", "value": 0.2108189550460864}, {"from": "prevent", "title": "NPMI = 0.23 | co-occurrences = 5", "to": "validation", "value": 0.2345051691324201}, {"from": "algorithm", "title": "NPMI = 0.26 | co-occurrences = 5", "to": "generation", "value": 0.2561055385429231}, {"from": "compromise", "title": "NPMI = 0.26 | co-occurrences = 6", "to": "credential", "value": 0.2648647784811511}, {"from": "structure", "title": "NPMI = 0.26 | co-occurrences = 5", "to": "enable", "value": 0.2619580543126106}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "barnesHut": {
+            "avoidOverlap": 0,
+            "centralGravity": 0.3,
+            "damping": 0.09,
+            "gravitationalConstant": -6000,
+            "springConstant": 0.001,
+            "springLength": 140
+        },
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+                      network.on("stabilizationProgress", function(params) {
+                          document.getElementById('loadingBar').removeAttribute("style");
+                          var maxWidth = 496;
+                          var minWidth = 20;
+                          var widthFactor = params.iterations/params.total;
+                          var width = Math.max(minWidth,maxWidth * widthFactor);
+                          document.getElementById('bar').style.width = width + 'px';
+                          document.getElementById('text').innerHTML = Math.round(widthFactor*100) + '%';
+                      });
+                      network.once("stabilizationIterationsDone", function() {
+                          document.getElementById('text').innerHTML = '100%';
+                          document.getElementById('bar').style.width = '496px';
+                          document.getElementById('loadingBar').style.opacity = 0;
+                          // really clean the dom element
+                          setTimeout(function () {document.getElementById('loadingBar').style.display = 'none';}, 500);
+                      });
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

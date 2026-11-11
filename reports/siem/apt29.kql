@@ -1,0 +1,13 @@
+union
+(CommonSecurityLog
+| where TimeGenerated > ago(24h)
+| where SourceIP in ("203.0.113.77", "198.51.100.99") or DestinationIP in ("203.0.113.77", "198.51.100.99")
+| project TimeGenerated, Computer, SourceIP, DestinationIP, Activity),
+(DnsEvents
+| where TimeGenerated > ago(24h)
+| where Name in~ ("cdn-update.example.net", "wm-sync.example.org")
+| project TimeGenerated, Computer, ClientIP, Name),
+(DeviceFileEvents
+| where TimeGenerated > ago(24h)
+| where SHA256 in~ ("f9babeebc604f41592b1906153661060a0062ba0edf62b33d813425dfa91b835", "2fe196a0e86c216e21b13770938da8af09fbf3149ff3591bb8b174301d4d036d")
+| project TimeGenerated, DeviceName, FileName, SHA256)

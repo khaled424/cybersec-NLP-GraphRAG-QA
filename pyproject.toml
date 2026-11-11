@@ -4,35 +4,37 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cybersec-nlp-graphrag"
-version = "0.1.0"
-description = "Cybersecurity question answering with NLP, knowledge graphs, and Graph-RAG."
+version = "1.0.0"
+description = "SOC assistant: cyber NER, STIX knowledge graph, HybridRAG with citations, agentic Cypher, RAG security audit and SIEM export."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
+license = { text = "MIT" }
 dependencies = [
-    "fastapi",
-    "uvicorn",
-    "transformers",
-    "torch",
-    "networkx",
-    "sentence-transformers",
-    "faiss-cpu",
-    "datasets",
-    "pydantic",
-    "python-dotenv",
-    "hydra-core",
+    # data, NLP and retrieval
+    "numpy", "pandas", "pyarrow", "scikit-learn", "joblib", "networkx",
+    "torch", "transformers", "sentence-transformers", "faiss-cpu", "huggingface_hub",
+    # local LLM fine-tuning / adapters
+    "peft", "accelerate",
+    # MVP
+    "fastapi", "uvicorn", "pydantic", "httpx", "streamlit",
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest",
-    "ruff",
+notebooks = [
+    "jupyterlab", "ipykernel", "nbconvert", "matplotlib", "seaborn", "scipy", "datasets",
+    "spacy", "gensim", "pyvis", "python-igraph", "leidenalg", "umap-learn", "torch-geometric",
+    "evaluate", "rouge_score", "bert_score", "neo4j",
 ]
+dev = ["pytest", "ruff"]
 
 [tool.setuptools.packages.find]
-include = ["ml*", "backend*"]
+where = ["src", "."]
+include = ["cybersec_nlp*", "backend*", "frontend*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src", "."]
 
 [tool.ruff]
-line-length = 100
+line-length = 120
+extend-exclude = ["notebooks"]
