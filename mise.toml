@@ -40,16 +40,23 @@ description = "Corpus nettoyé → NER → graphe STIX → scripts Neo4j → ind
 run = "$PY -m cybersec_nlp.pipelines.build_knowledge_base"
 
 [tasks.notebooks]
-description = "Exécute les 7 notebooks dans l'ordre des dépendances (GPU recommandé, ~1 h)"
+description = "Exécute les notebooks de l'équipe et la synthèse, dans l'ordre des dépendances (GPU, ~1 h)"
 run = """
 for nb in Notebook1_Preprocessing_NER_Graph Notebook2_PartA_GNN_PyG Notebook2_PartB_GTN_Leiden \
           Notebook3_LLM_FineTuning_Evaluation Notebook4_PartA_HybridRAG_Pipeline \
-          Notebook4_PartB_AgenticRAG_Security_SIEM 00_Master_Notebook; do
+          Notebook4_PartB_AgenticRAG_Security_SIEM Synthese_TDSP; do
   echo "=== $nb"
   $PY -m jupyter nbconvert --to notebook --execute --inplace \
     --ExecutePreprocessor.timeout=7200 "notebooks/$nb.ipynb" || exit 1
 done
 """
+
+[tasks.master]
+description = "Reconstruit le notebook maître (livrable) à partir des notebooks de l'équipe puis l'exécute (~1 h 30)"
+run = [
+  "$PY scripts/build_master_notebook.py",
+  "$PY -m jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=7200 notebooks/00_Master_Notebook.ipynb",
+]
 
 [tasks.notebook]
 description = "Exécute un seul notebook : mise run notebook <nom sans .ipynb>"

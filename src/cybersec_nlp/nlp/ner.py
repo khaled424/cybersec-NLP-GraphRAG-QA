@@ -91,6 +91,8 @@ ALIASES: dict[str, tuple[str, str]] = {
     "chaîne d'approvisionnement": ("VECTOR", "supply chain attack"),
     "hôpital": ("TARGET", "hospital"), "hôpitaux": ("TARGET", "hospital"), "santé": ("TARGET", "healthcare"),
     "banque": ("TARGET", "bank"), "banques": ("TARGET", "bank"), "gouvernement": ("TARGET", "government"),
+    "secteur bancaire": ("TARGET", "banking"), "bancaire": ("TARGET", "banking"),
+    "secteur financier": ("TARGET", "financial sector"), "secteur de la santé": ("TARGET", "healthcare"),
     "infrastructure critique": ("TARGET", "critical infrastructure"),
     "infrastructures critiques": ("TARGET", "critical infrastructure"),
 }

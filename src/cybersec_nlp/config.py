@@ -9,6 +9,10 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from cybersec_nlp.reproducibility import configure_cublas
+
+configure_cublas()  # before any CUDA use: required for deterministic training (see reproducibility.py)
+
 ROOT = Path(os.getenv("CYBERSEC_ROOT", Path(__file__).resolve().parents[2]))
 
 DATASET_ID = "AlicanKiraz0/Cybersecurity-Dataset-v1"
@@ -34,5 +38,6 @@ VECTOR_INDEX_DIR = ARTIFACTS / "vector_index"
 CLASSIFIER_PATH = ARTIFACTS / "incident_classifier.joblib"
 
 EMBEDDING_MODEL = "intfloat/multilingual-e5-small"
+RERANKER_MODEL = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
 LLM_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
 SEED = 42

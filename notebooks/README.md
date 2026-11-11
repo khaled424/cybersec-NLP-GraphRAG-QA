@@ -12,8 +12,13 @@ La logique réutilisable vit dans `src/cybersec_nlp/` (testée) ; les notebooks 
 | 4 | `Notebook3_LLM_FineTuning_Evaluation.ipynb` | Membre 4 | 3 — Model tuning | Température / top-p mesurés, zero/few-shot, CoT, self-consistency, LoRA réel, ROUGE / BERTScore / FactCC, juge LLM, garde-fou |
 | 5 | `Notebook4_PartA_HybridRAG_Pipeline.ipynb` | Membre 5 | 4 — Operationalization | Démo contrôlée + passage à l'échelle : FAISS (E5), graphe STIX, LLM local, benchmark réel, abstention, fidélité |
 | 6 | `Notebook4_PartB_AgenticRAG_Security_SIEM.ipynb` | Membre 6 | 5 — Security audit | Agent ReAct Text-to-Cypher, GragPoison, OWASP LLM08, export SIEM (SPL / KQL), sur démo puis graphe réel |
-| 7 | `00_Master_Notebook.ipynb` | Équipe | 1 → 5 | Synthèse TDSP, résultats consolidés, démonstration du moteur du MVP, critères d'acceptation |
+| 7 | `Synthese_TDSP.ipynb` | Équipe | 1 → 5 | Synthèse TDSP, résultats consolidés, démonstration du moteur de Vigie, critères d'acceptation |
+| ★ | **`00_Master_Notebook.ipynb`** | Équipe | 1 → 5 | **Livrable final** : toutes les cellules des notebooks ci-dessus (0 → 7), une partie par notebook |
 | — | `001-EDA.ipynb` | Équipe | 2 — Data | Profilage initial du dataset |
 
-**Exécution** : `make pipeline` puis `make notebooks` (dans l'ordre ci-dessus ; GPU CUDA requis pour les
+**Notebook maître.** Il est **généré** par `scripts/build_master_notebook.py` : ne pas le modifier à la main, mais
+modifier le notebook source puis lancer `mise run master` (reconstruction + exécution). Chaque partie démarre par une
+cellule d'isolation (remise à zéro du noyau, libération du GPU).
+
+**Exécution** : `mise run pipeline` puis `mise run notebooks` (dans l'ordre ci-dessus ; GPU CUDA requis pour les
 Notebooks 3, 4A §7 et 4B §6.1). Les données brutes et les artefacts lourds (`data/`, `artifacts/`) ne sont pas versionnés.

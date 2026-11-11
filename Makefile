@@ -1,9 +1,9 @@
-.PHONY: install data pipeline notebooks api ui mvp test lint
+.PHONY: install data pipeline notebooks master api ui mvp test lint
 
 PYTHON ?= python
 NOTEBOOKS = Notebook1_Preprocessing_NER_Graph Notebook2_PartA_GNN_PyG Notebook2_PartB_GTN_Leiden \
             Notebook3_LLM_FineTuning_Evaluation Notebook4_PartA_HybridRAG_Pipeline \
-            Notebook4_PartB_AgenticRAG_Security_SIEM 00_Master_Notebook
+            Notebook4_PartB_AgenticRAG_Security_SIEM Synthese_TDSP
 
 install:            ## dependencies + package (editable) + spaCy model
 	$(PYTHON) -m pip install -r requirements.txt
@@ -21,6 +21,11 @@ notebooks:          ## execute every notebook in dependency order (GPU recommend
 		$(PYTHON) -m jupyter nbconvert --to notebook --execute --inplace \
 			--ExecutePreprocessor.timeout=7200 notebooks/$$nb.ipynb || exit 1; \
 	done
+
+master:             ## rebuild the master notebook (deliverable) from the team notebooks and execute it
+	$(PYTHON) scripts/build_master_notebook.py
+	$(PYTHON) -m jupyter nbconvert --to notebook --execute --inplace \
+		--ExecutePreprocessor.timeout=7200 notebooks/00_Master_Notebook.ipynb
 
 api:                ## FastAPI backend on http://localhost:8000 (docs: /docs)
 	$(PYTHON) -m uvicorn backend.main:app --host 0.0.0.0 --port 8000

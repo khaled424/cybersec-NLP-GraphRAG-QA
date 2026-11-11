@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory = $true, Position = 0)]
-    [ValidateSet("install", "data", "pipeline", "notebooks", "api", "ui", "test", "lint")]
+    [ValidateSet("install", "data", "pipeline", "notebooks", "master", "api", "ui", "test", "lint")]
     [string]$Command
 )
 
@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 $Notebooks = @(
     "Notebook1_Preprocessing_NER_Graph", "Notebook2_PartA_GNN_PyG", "Notebook2_PartB_GTN_Leiden",
     "Notebook3_LLM_FineTuning_Evaluation", "Notebook4_PartA_HybridRAG_Pipeline",
-    "Notebook4_PartB_AgenticRAG_Security_SIEM", "00_Master_Notebook"
+    "Notebook4_PartB_AgenticRAG_Security_SIEM", "Synthese_TDSP"
 )
 
 switch ($Command) {
@@ -24,6 +24,10 @@ switch ($Command) {
             & python -m jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=7200 "notebooks/$nb.ipynb"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         }
+    }
+    "master" {
+        & python scripts/build_master_notebook.py
+        & python -m jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=7200 "notebooks/00_Master_Notebook.ipynb"
     }
     "api" { & python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 }
     "ui" { & python -m streamlit run frontend/app.py --server.port 8501 --server.headless true --browser.gatherUsageStats false }

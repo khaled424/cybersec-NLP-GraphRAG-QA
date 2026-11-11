@@ -27,3 +27,16 @@ def test_classifier_fit_predict_save_load(tmp_path) -> None:
     model.save(tmp_path / "m.joblib")
     assert IncidentClassifier.load(tmp_path / "m.joblib").predict(["bitcoin note"]) == ["B"]
     assert top_terms(model, "B", 3)
+
+
+def test_hybrid_classifier_with_precomputed_embeddings(tmp_path) -> None:
+    import numpy as np
+
+    texts = ["invoice lure link sender spoofed domain"] * 5 + ["encrypted files bitcoin note locker"] * 5
+    labels = ["A"] * 5 + ["B"] * 5
+    emb = np.array([[1.0, 0.0]] * 5 + [[0.0, 1.0]] * 5)
+    model = IncidentClassifier(embedding_weight=1.0).fit(texts, labels, emb)
+    assert model.predict(texts[:1] + texts[-1:], emb[[0, -1]]) == ["A", "B"]
+    model.save(tmp_path / "h.joblib")
+    loaded = IncidentClassifier.load(tmp_path / "h.joblib")
+    assert loaded.embedding_weight == 1.0 and top_terms(loaded, "A", 2)

@@ -19,7 +19,7 @@
       "accuracy": 0.219,
       "macro-F1": 0.181,
       "non interprétables": 0.047,
-      "latence (s/question)": 0.046,
+      "latence (s/question)": 0.029,
       "accord moyen des votes": NaN
     },
     {
@@ -27,7 +27,7 @@
       "accuracy": 0.344,
       "macro-F1": 0.341,
       "non interprétables": 0.0,
-      "latence (s/question)": 0.099,
+      "latence (s/question)": 0.075,
       "accord moyen des votes": NaN
     },
     {
@@ -35,7 +35,7 @@
       "accuracy": 0.312,
       "macro-F1": 0.29,
       "non interprétables": 0.156,
-      "latence (s/question)": 0.331,
+      "latence (s/question)": 0.202,
       "accord moyen des votes": NaN
     },
     {
@@ -43,7 +43,7 @@
       "accuracy": 0.391,
       "macro-F1": 0.362,
       "non interprétables": 0.0,
-      "latence (s/question)": 2.226,
+      "latence (s/question)": 1.092,
       "accord moyen des votes": 0.609
     }
   ],
@@ -55,8 +55,8 @@
       "v_proj"
     ],
     "train_examples": 800,
-    "train_minutes": 2.5042239672499513,
-    "final_loss": 1.8478375816345214
+    "train_minutes": 2.387025135366518,
+    "final_loss": 1.847750415802002
   },
   "evaluation": [
     {
@@ -70,12 +70,12 @@
     },
     {
       "modèle": "LoRA (fine-tuné)",
-      "ROUGE-1": 0.3652,
-      "ROUGE-2": 0.0711,
-      "ROUGE-L": 0.1412,
-      "BERTScore F1": 0.8396,
-      "FactCC (cohérentes)": 0.6114,
-      "longueur moyenne (mots)": 214.8
+      "ROUGE-1": 0.366,
+      "ROUGE-2": 0.0719,
+      "ROUGE-L": 0.1422,
+      "BERTScore F1": 0.8398,
+      "FactCC (cohérentes)": 0.6025,
+      "longueur moyenne (mots)": 215.6
     }
   ],
   "judge": [
@@ -87,8 +87,8 @@
     },
     {
       "modèle": "LoRA (fine-tuné)",
-      "fidélité": 4.3,
-      "pertinence": 3.5,
+      "fidélité": 4.4,
+      "pertinence": 3.6,
       "notes_lues": 10
     }
   ],

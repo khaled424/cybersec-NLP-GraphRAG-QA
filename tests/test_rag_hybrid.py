@@ -107,3 +107,17 @@ def test_grounding_rejects_identifier_attributed_to_wrong_product() -> None:
     result = checker.check("CVE-2021-34527 affects log4j servers. CVE-2021-44228 affects log4j servers.", evidence)
     assert [s for s, _ in result.unsupported] == ["CVE-2021-34527 affects log4j servers."]
     assert "association" in result.unsupported[0][1]
+
+
+def test_reranker_orders_by_score_and_handles_empty() -> None:
+    from cybersec_nlp.rag.reranker import CrossEncoderReranker
+
+    class _Model:
+        def predict(self, pairs, show_progress_bar=False):
+            return [len(set(q.split()) & set(t.split())) for q, t in pairs]
+
+    reranker = CrossEncoderReranker()
+    reranker._model = _Model()
+    ranked = reranker.rerank("detect ransomware", ["sql injection", "detect ransomware early", "ransomware"], str)
+    assert [item for item, _ in ranked] == ["detect ransomware early", "ransomware", "sql injection"]
+    assert reranker.rerank("q", [], str) == []

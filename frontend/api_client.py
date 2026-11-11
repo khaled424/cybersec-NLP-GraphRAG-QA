@@ -67,3 +67,7 @@ def audit_graph() -> dict[str, Any]:
 
 def metrics() -> dict[str, Any]:
     return _request("GET", "/metrics")
+
+
+def export_case(case: dict[str, Any]) -> str:
+    return _request("POST", "/cases/export", json=case)["markdown"]
