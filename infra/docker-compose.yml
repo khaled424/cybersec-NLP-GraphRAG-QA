@@ -1,3 +1,5 @@
+# CPU deployment of the MVP (the LLM is disabled without CUDA: answers are extractive).
+# Prerequisite: `make pipeline` so that data/processed and artifacts/ exist.
 services:
   api:
     build:
@@ -5,3 +7,18 @@ services:
       dockerfile: infra/Dockerfile.backend
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  ui:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.frontend
+    environment:
+      CYBERSEC_API_URL: http://api:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api

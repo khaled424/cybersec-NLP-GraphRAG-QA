@@ -42,8 +42,20 @@ class AgentResult:
         return bool(self.rows)
 
 
+LABEL_SYNONYMS = {
+    "cve": "Vulnerability", "vuln": "Vulnerability", "technique": "AttackPattern", "tactic": "AttackPattern",
+    "attack": "AttackPattern", "attacktechnique": "AttackPattern", "actor": "ThreatActor", "apt": "ThreatActor",
+    "group": "ThreatActor", "threatgroup": "ThreatActor", "sector": "Target", "industry": "Target",
+    "organization": "Target", "victim": "Target", "product": "Software", "os": "Software", "application": "Software",
+    "ioc": "Indicator", "ip": "Indicator", "ipaddress": "Indicator", "report": "Document", "doc": "Document",
+}  # domain synonyms LLMs commonly use for the STIX labels of the project graph
+
+
 def _closest(word: str, options: list[str]) -> str | None:
     """Best fuzzy match, ignoring case and underscores (USES_MALWARE -> USES)."""
+    synonym = LABEL_SYNONYMS.get(word.lower().replace("_", ""))
+    if synonym in options:
+        return synonym
     norm = {o: o.lower().replace("_", "") for o in options}
     target = word.lower().replace("_", "")
     # a known token that is a prefix/suffix of the hallucinated one is a strong hint
@@ -64,10 +76,15 @@ def schema_repairer(query: str, error: str, schema: Schema) -> str:
     ):
         found = re.search(rf"Unknown {kind} `(\w+)`", error)
         if found:
-            bad = found.group(1)
-            good = _closest(bad, options)
-            if good:
-                fixed = re.sub(rf"\b{re.escape(bad)}\b", good, fixed)
+            bad = re.escape(found.group(1))
+            good = _closest(found.group(1), options)
+            if not good:
+                continue
+            # Replace only in label / type / property positions, never inside quoted values.
+            if kind == "property":
+                fixed = re.sub(rf"(?<=\.){bad}\b|(?<=\{{)\s*{bad}(?=\s*:)|(?<=,)\s*{bad}(?=\s*:)", good, fixed)
+            else:
+                fixed = re.sub(rf"(?<=:)\s*{bad}\b", good, fixed)
     return fixed
 
 
@@ -89,6 +106,127 @@ def rerank(question: str, rows: list[dict[str, Any]], graph: InMemoryGraph) -> l
     return sorted(rows, key=score, reverse=True)
 
 
+EMPTY_RESULT = "No rows returned. Entity names must be canonical keys of the graph."
+_ORDER_BY = re.compile(r"\s+ORDER\s+BY\s+.+?(?=\s+LIMIT\b|\s*;?\s*$)", re.IGNORECASE | re.DOTALL)
+_VAR_LENGTH = re.compile(r"\*\s*\d*\s*(?:\.\.\s*\d*)?(?=\s*\])")
+_NODE_FILTER = re.compile(r"\((\w+)(?::(\w+))?\s*\{\s*(\w+)\s*:\s*(['\"])(.*?)\4\s*\}\s*\)")
+
+
+def syntax_repairer(query: str, error: str, schema: Schema) -> str:
+    """Remove constructs the backend rejects but that do not change the answer set."""
+    if "Syntax error" not in error:
+        return query
+    fixed = _ORDER_BY.sub("", query)
+    fixed = _VAR_LENGTH.sub("", fixed)
+    return fixed.replace(";", "").strip()
+
+
+def entity_linking_repairer(graph: InMemoryGraph, ner=None) -> CypherRepairer:
+    """Rewrite ``(x:Label {prop: 'Value'})`` to the canonical ``{name: 'key'}`` and label of a graph node.
+
+    Names are matched case-insensitively, then through the NER canonical key (aliases, e.g.
+    'banking sector' -> 'banking'). Triggered on empty results and on unknown labels/properties.
+    """
+    from cybersec_nlp.nlp.ner import CyberNER
+
+    ner = ner or CyberNER()
+    by_name: dict[str, list[tuple[str, str]]] = {}  # lower-case name -> [(label, stored name)]
+    for node in graph.nodes.values():
+        by_name.setdefault(node.name.lower(), []).append((node.label, node.name))
+
+    def resolve(value: str, label: str | None) -> tuple[str, str] | None:
+        """``(label, name)`` of the graph node designated by ``value`` (same label preferred)."""
+        candidates = [value.lower()] + sorted(key.lower() for key, _ in ner.extract_keys(value))
+        for candidate in candidates:
+            matches = by_name.get(candidate)
+            if matches:
+                return next((m for m in matches if m[0] == label), matches[0])
+        return None
+
+    def repair(query: str, error: str, schema: Schema) -> str:
+        if error != EMPTY_RESULT and not error.startswith(("Unknown label", "Unknown property")):
+            return query
+
+        def substitute(match: re.Match[str]) -> str:
+            var, label, _, _, value = match.groups()
+            found = resolve(value, label)
+            if not found:
+                return match.group(0)
+            new_label, name = found
+            return f"({var}:{new_label} {{name: '{name}'}})"
+
+        return _NODE_FILTER.sub(substitute, query)
+
+    return repair
+
+
+def direction_repairer(query: str, error: str, schema: Schema) -> str:
+    """On an empty result, try the relationship in the opposite direction (a classic LLM error)."""
+    if error != EMPTY_RESULT:
+        return query
+    if re.search(r"\]\s*->", query):
+        return re.sub(r"-\s*\[(.*?)\]\s*->", r"<-[\1]-", query, count=1)
+    return re.sub(r"<-\s*\[(.*?)\]\s*-(?!>)", r"-[\1]->", query, count=1)
+
+
+def chain_repairers(*repairers: CypherRepairer) -> CypherRepairer:
+    """Try each repairer in order; the first one that changes the query wins."""
+
+    def repair(query: str, error: str, schema: Schema) -> str:
+        for repairer in repairers:
+            fixed = repairer(query, error, schema)
+            if fixed.strip() != query.strip():
+                return fixed
+        return query
+
+    return repair
+
+
+_CYPHER_LINE = re.compile(r"(MATCH\b.*?RETURN\b[^\n`]*)", re.IGNORECASE | re.DOTALL)
+TEXT_TO_CYPHER_PROMPT = """You translate a question into ONE read-only Cypher query for a Neo4j graph.
+Schema:
+{schema}
+Rules:
+- Use exactly this pattern: MATCH (a:Label {{name: 'value'}})-[:REL]->(b:Label) RETURN b.name LIMIT 20
+  (the arrow may be reversed: <-[:REL]-). Use only labels and relationships from the schema.
+- Filter entities with the `name` property. Names are lower-case (e.g. 'apt28', 'nmap', 'openssl');
+  CVE identifiers are upper-case (e.g. 'CVE-2014-0160').
+- Output only the query, nothing else.
+Examples:
+Question: Which software is affected by CVE-2014-0160?
+MATCH (v:Vulnerability {{name: 'CVE-2014-0160'}})-[:AFFECTS]->(s:Software) RETURN s.name LIMIT 20
+Question: Which documents mention nmap?
+MATCH (d:Document)-[:MENTIONS]->(t:Tool {{name: 'nmap'}}) RETURN d.name LIMIT 20"""
+
+
+def extract_cypher(text: str) -> str:
+    """First ``MATCH ... RETURN ...`` statement of an LLM answer (code fences removed)."""
+    match = _CYPHER_LINE.search(text.replace("```cypher", "").replace("```", ""))
+    return " ".join(match.group(1).split()) if match else text.strip()
+
+
+def llm_cypher_generator(llm) -> CypherGenerator:
+    def generate(question: str, schema: Schema) -> str:
+        answer = llm.chat([
+            {"role": "system", "content": TEXT_TO_CYPHER_PROMPT.format(schema=schema.describe())},
+            {"role": "user", "content": question},
+        ], max_new_tokens=80)
+        return extract_cypher(answer)
+
+    return generate
+
+
+def llm_cypher_repairer(llm) -> CypherRepairer:
+    def repair(query: str, error: str, schema: Schema) -> str:
+        answer = llm.chat([
+            {"role": "system", "content": TEXT_TO_CYPHER_PROMPT.format(schema=schema.describe())},
+            {"role": "user", "content": f"This query failed:\n{query}\nDatabase error: {error}\nReturn the corrected query."},
+        ], max_new_tokens=80)
+        return extract_cypher(answer)
+
+    return repair
+
+
 class AgenticRAG:
     """Self-correcting graph question-answering agent (ReAct)."""
 
@@ -108,6 +246,7 @@ class AgenticRAG:
         schema = self.graph.schema()
         query = self.generator(question, schema)
         result = AgentResult(question, None, [])
+        tried = {query}
         for step_no in range(1, self.max_steps + 1):
             try:
                 rows = self.graph.run(query)
@@ -117,14 +256,20 @@ class AgenticRAG:
                     Step(f"Step {step_no}: the query failed; fix it with the schema.", query, f"ERROR: {error}")
                 )
                 repaired = self.repairer(query, error, schema)
-                if repaired == query:
-                    result.trace.append(Step("No repair found; stop.", query, "ABORT"))
+                if repaired in tried:
+                    result.trace.append(Step("No new repair found; stop.", query, "ABORT"))
                     return result
+                tried.add(repaired)
                 query, result.repaired = repaired, True
                 continue
             if not rows:
-                result.trace.append(Step(f"Step {step_no}: empty result.", query, "0 rows"))
-                return result
+                result.trace.append(Step(f"Step {step_no}: empty result; check entity names and labels.", query, "0 rows"))
+                repaired = self.repairer(query, EMPTY_RESULT, schema)
+                if repaired in tried:
+                    return result
+                tried.add(repaired)
+                query, result.repaired = repaired, True
+                continue
             ranked = rerank(question, rows, self.graph)
             result.trace.append(Step(f"Step {step_no}: query valid; re-rank rows.", query, f"{len(rows)} rows"))
             result.final_query, result.rows = query, ranked

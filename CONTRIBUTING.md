@@ -15,8 +15,9 @@ python -m pip install -e ".[dev]"
 Use `.\run.ps1` for the standard project commands:
 
 ```powershell
+.\run.ps1 install
 .\run.ps1 data
-.\run.ps1 explore
+.\run.ps1 pipeline
 .\run.ps1 test
 .\run.ps1 lint
 ```
@@ -29,7 +30,7 @@ source control; the repository ignores the contents of `data/`.
 1. **Keep `main` green.** The test suite must pass with `.\run.ps1 test` before
    changes are merged.
 2. **Do not commit data or model artifacts.** Never add files from `data/` or
-   `models/`; share reproducible download or generation instructions instead.
+   `artifacts/`; share reproducible download or generation instructions instead.
 3. **Make metrics reproducible.** Document the dataset and split, preprocessing,
    model and configuration, random seeds, and evaluation command needed to
    reproduce every reported metric. Do not present unverified results as

@@ -1,0 +1,3 @@
+search index=* earliest=-24h ((src_ip IN ("89.62.172.13") OR dest_ip IN ("89.62.172.13")))
+| stats count min(_time) as first_seen max(_time) as last_seen values(sourcetype) as sources by host, src_ip, dest_ip
+| convert ctime(first_seen) ctime(last_seen)

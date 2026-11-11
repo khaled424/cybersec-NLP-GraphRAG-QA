@@ -1,0 +1,95 @@
+{
+  "cleaning": {
+    "Dataset brut": 2411,
+    "Après suppression des NaN (user / assistant)": 2409,
+    "Après suppression des doublons 'user'": 2394,
+    "Après filtrage courts / tronqués": 2194
+  },
+  "lda": {
+    "k": 12,
+    "coherence_cv": 0.28752266693564205,
+    "topics": {
+      "0": "code / network / injection",
+      "1": "attack / implement / session",
+      "2": "detection / implement / evade",
+      "3": "construct / pattern / spoof",
+      "4": "attack / researcher / implement",
+      "5": "module / implement / method",
+      "6": "api / syscall / build",
+      "7": "attack / exploit / implementation",
+      "8": "implement / attack / fault",
+      "9": "process / identify / detect",
+      "10": "vulnerability / application / exploit",
+      "11": "researcher / analysis / communication"
+    }
+  },
+  "npmi_graph": {
+    "nodes": 130,
+    "edges": 137,
+    "communities": 21
+  },
+  "embeddings": {
+    "silhouette": 0.03217025101184845,
+    "ari_vs_lda": 0.0923049247371844
+  },
+  "vectorisation": [
+    {
+      "représentation": "TF-IDF",
+      "Recall@1": 0.768,
+      "Recall@10": 0.912,
+      "MRR@10": 0.818,
+      "macro-F1 (5 plis)": 0.56
+    },
+    {
+      "représentation": "Word2Vec (corpus)",
+      "Recall@1": 0.504,
+      "Recall@10": 0.779,
+      "MRR@10": 0.597,
+      "macro-F1 (5 plis)": 0.496
+    },
+    {
+      "représentation": "GloVe (pré-entraîné)",
+      "Recall@1": 0.158,
+      "Recall@10": 0.325,
+      "MRR@10": 0.208,
+      "macro-F1 (5 plis)": 0.23
+    },
+    {
+      "représentation": "SBERT (contextuel)",
+      "Recall@1": 0.707,
+      "Recall@10": 0.888,
+      "MRR@10": 0.77,
+      "macro-F1 (5 plis)": 0.486
+    }
+  ],
+  "ner": {
+    "micro_precision": 0.92776886035313,
+    "micro_recall": 0.896124031007752,
+    "micro_f1": 0.9116719242902208,
+    "macro_f1": 0.7254444444444444,
+    "unseen_entity_recall": 0.2571428571428571,
+    "unseen_mentions": 210,
+    "rule_based_unseen_recall": 0.0
+  },
+  "graph": {
+    "nodes": {
+      "Document": 2194,
+      "AttackPattern": 131,
+      "Software": 60,
+      "Tool": 27,
+      "Target": 18,
+      "Indicator": 20,
+      "Vulnerability": 86,
+      "Malware": 27,
+      "ThreatActor": 10
+    },
+    "edges": {
+      "MENTIONS": 4926,
+      "TARGETS": 258,
+      "USES": 38,
+      "AFFECTS": 55
+    },
+    "n_nodes": 2573,
+    "n_edges": 5277
+  }
+}

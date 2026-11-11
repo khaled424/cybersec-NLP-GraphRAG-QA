@@ -1,40 +1,62 @@
 # Structure du dépôt selon le TDSP
 
 Le dépôt suit le cycle de vie du **Team Data Science Process** : chaque phase a
-un emplacement identifiable pour son code, ses données et ses livrables. Le
-projet est **100 % NLP / Graph-RAG** : il n'entraîne pas de modèle de
-machine learning (classification zero-shot, extraction d'entités, graphe de
-connaissances, retrieval et génération).
+un emplacement identifiable pour son code, ses données et ses livrables, et la
+répartition du travail suit le plan à 6 membres (4 notebooks académiques).
 
 | Phase TDSP | Emplacement | Contenu |
 | --- | --- | --- |
-| 1. Business Understanding | `docs/tdsp/`, `docs/report/` | Cadrage, rapport métier, critères de réussite |
-| 2. Data Acquisition & Understanding | `src/cybersec_nlp/data/`, `notebooks/`, `data/` | Téléchargement, exploration, EDA ; données `raw/`, `interim/`, `processed/`, `external/` (hors Git) |
-| 3. Modeling (pipeline NLP) | `src/cybersec_nlp/{features,nlp,graph,rag,evaluation,pipelines}/`, `configs/`, `docs/experiments/` | Prétraitement, zero-shot, NER, graphe, Graph-RAG, évaluation |
-| 4. Deployment | `backend/`, `frontend/`, `infra/`, `.github/workflows/` | API FastAPI, interface, Docker, CI |
-| 5. Security Audit (Membre 6) | `src/cybersec_nlp/{security,siem}/`, `notebooks/Notebook4_PartB_*.ipynb`, `reports/siem/` | Agentic RAG, audit GragPoison / OWASP LLM08, règles SIEM |
-| 5. Customer Acceptance | `docs/report/`, `reports/` | Rapport final, validation avec les utilisateurs |
+| 1. Business Understanding | `docs/tdsp/`, `docs/report/` | Cadrage SOC, rapport métier, critères de réussite proposés (`cybersec_nlp.evaluation.report`) |
+| 2. Data Acquisition & Understanding | `notebooks/Notebook1_*`, `notebooks/001-EDA.ipynb`, `src/cybersec_nlp/data/`, `data/` | Acquisition figée (SHA-256), nettoyage, EDA, NER, graphe STIX, export Neo4j |
+| 3. Modeling | `notebooks/Notebook2_PartA_*`, `Notebook2_PartB_*`, `Notebook3_*`, `Notebook4_PartA_*`, `src/cybersec_nlp/{nlp,graph,rag,llm,evaluation}/` | GCN/GAT, HGT + Leiden, LLM (prompting, LoRA), HybridRAG |
+| 4. Deployment | `backend/`, `frontend/`, `infra/`, `src/cybersec_nlp/engine.py`, `.github/workflows/` | API FastAPI, interface Streamlit, Docker, CI |
+| 5. Security Audit & Acceptance | `notebooks/Notebook4_PartB_*`, `notebooks/00_Master_Notebook.ipynb`, `src/cybersec_nlp/{security,siem}/`, `reports/` | Agent ReAct, GragPoison, OWASP LLM08, SIEM, critères d'acceptation |
 
 ## Arborescence
 
 ```text
-configs/               paramètres du pipeline et de l'API (Hydra / YAML)
-data/                  raw, interim, processed, external (contenu ignoré par Git)
-docs/                  adr, tdsp, experiments, report, assets
-notebooks/             EDA et prototypage (001-EDA.ipynb)
-reports/               figures et livrables générés
-src/cybersec_nlp/      package Python, un sous-package par étape du pipeline
-backend/  frontend/    couche de déploiement
+data/                  raw (copie brute figée), processed (livrables du Notebook 1) — contenu ignoré par Git
+artifacts/             index FAISS, classifieur, modèles fine-tunés (SecBERT, LoRA) — ignoré par Git
+notebooks/             00_Master_Notebook + Notebooks 1, 2A, 2B, 3, 4A, 4B (+ EDA de profilage)
+reports/metrics/       métriques JSON exportées par chaque notebook (lues par le maître et le MVP)
+reports/siem/          règles SPL / KQL générées
+reports/figures/       graphes interactifs (PyVis)
+src/cybersec_nlp/      package partagé et testé
+  config.py            chemins et constantes (source unique)
+  data/                chargement vérifié et nettoyage du corpus
+  nlp/                 NER cyber (STIX), classifieur de triage
+  graph/               graphe STIX 2.1, backend Cypher en mémoire, export / import Neo4j
+  rag/                 chunking, index FAISS, HybridRAG, contrôle de fidélité, agent ReAct
+  llm/                 LLM local (Qwen2.5-1.5B), prompts, garde-fou anti-injection
+  security/            détection d'empoisonnement du graphe, contrôles OWASP LLM08
+  siem/                génération de règles Splunk / Sentinel
+  evaluation/          métriques de recherche, rapport d'acceptation
+  pipelines/           construction de bout en bout des artefacts
+  engine.py            façade SOCEngine (API, interface, notebook maître)
+backend/               API FastAPI (routes, schémas, service)
+frontend/              interface Streamlit (6 pages) + client HTTP
 infra/                 Dockerfiles et docker-compose
-tests/                 tests unitaires et de fumée
+tests/                 tests unitaires et d'API
+```
+
+## Flux de données entre membres
+
+```text
+Notebook 1 (Walid) ──► corpus_clean.parquet, entities.json, knowledge_graph.json, rag_documents.jsonl,
+                       df_clean_eda.parquet, neo4j/import.cypher
+     ├──► Notebook 2A (GCN/GAT : graphe D = entités du NER)
+     ├──► Notebook 2B (HGT + Leiden : entités du NER, thèmes LDA)
+     ├──► Notebook 4A (HybridRAG : contrat RAG + graphe STIX) ◄── LLM local du Notebook 3
+     └──► Notebook 4B (agent Cypher, audit, SIEM sur le graphe réel) ◄── LLM local du Notebook 3
+Tous ──► reports/metrics/*.json ──► 00_Master_Notebook + page « Métriques » du MVP
 ```
 
 ## Commandes
 
 ```bash
-python -m cybersec_nlp.data.download   # phase 2 : récupérer le dataset
-python -m cybersec_nlp.data.explore    # phase 2 : résumé rapide
-python -m cybersec_nlp.pipelines.build_knowledge_base   # phase 3
-python -m uvicorn backend.main:app --reload             # phase 4
-python -m pytest                                        # tests, dont sécurité et SIEM
+make install     # dépendances, package, modèle spaCy
+make pipeline    # artefacts : corpus, NER, graphe, Cypher, index FAISS, classifieur
+make notebooks   # exécute les notebooks dans l'ordre (GPU recommandé)
+make mvp         # API (http://localhost:8000/docs) + interface (http://localhost:8501)
+make test lint   # qualité
 ```

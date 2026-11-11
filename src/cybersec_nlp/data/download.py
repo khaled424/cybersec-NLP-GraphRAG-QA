@@ -1,20 +1,12 @@
-"""Download the cybersecurity dataset from Hugging Face."""
+"""Download the pinned raw dataset file into ``data/raw/cybersec_v1`` and verify its checksum."""
 
-from pathlib import Path
-
-from datasets import load_dataset
-
-DATASET_ID = "AlicanKiraz0/Cybersecurity-Dataset-v1"
-SAVE_PATH = Path(__file__).resolve().parents[3] / "data" / "raw" / "cybersec_v1"
+from cybersec_nlp import config
+from cybersec_nlp.data.loading import load_raw
 
 
 def main() -> None:
-    """Download and save the dataset in Hugging Face's on-disk format."""
-    print(f"Starting download of '{DATASET_ID}' from Hugging Face...")
-    dataset = load_dataset(DATASET_ID)
-    print("Download complete. Saving dataset to disk...")
-    dataset.save_to_disk(str(SAVE_PATH))
-    print(f"Dataset saved successfully to: {SAVE_PATH}")
+    frame = load_raw()
+    print(f"{config.DATASET_ID}@{config.DATASET_REVISION[:8]}: {frame.shape} -> {config.RAW_PARQUET}")
 
 
 if __name__ == "__main__":

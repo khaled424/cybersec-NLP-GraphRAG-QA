@@ -1,0 +1,195 @@
+{
+  "n_incidents": 1585,
+  "classes": [
+    "Vulnerability & Exploit",
+    "Malware & Ransomware",
+    "Identity & Crypto",
+    "Web App Attacks",
+    "Detection & IR (SOC)",
+    "Cloud & Governance",
+    "Network & Intrusion"
+  ],
+  "graphs": [
+    {
+      "Graphe": "A. kNN",
+      "Arêtes": 11744,
+      "Degré moyen": 14.82,
+      "Nœuds isolés": 0,
+      "Homophilie": 0.453
+    },
+    {
+      "Graphe": "B. Entités",
+      "Arêtes": 13469,
+      "Degré moyen": 17.0,
+      "Nœuds isolés": 952,
+      "Homophilie": 0.339
+    },
+    {
+      "Graphe": "C. Hybride",
+      "Arêtes": 24120,
+      "Degré moyen": 30.44,
+      "Nœuds isolés": 0,
+      "Homophilie": 0.387
+    },
+    {
+      "Graphe": "D. NER Walid",
+      "Arêtes": 11956,
+      "Degré moyen": 15.09,
+      "Nœuds isolés": 870,
+      "Homophilie": 0.346
+    }
+  ],
+  "results": [
+    {
+      "Modèle": "TF-IDF + LogReg",
+      "Famille": "Texte seul",
+      "Graphe": "—",
+      "macro-F1": 0.5091639455130149,
+      "±": 0.0,
+      "Accuracy": 0.5962145110410094,
+      "val_f1": NaN
+    },
+    {
+      "Modèle": "MLP",
+      "Famille": "Features seules",
+      "Graphe": "—",
+      "macro-F1": 0.4489108644987448,
+      "±": 0.01521793053460542,
+      "Accuracy": 0.5068349106203995,
+      "val_f1": 0.5365955214332443
+    },
+    {
+      "Modèle": "GCN",
+      "Famille": "GNN",
+      "Graphe": "A. kNN",
+      "macro-F1": 0.43873666259050137,
+      "±": 0.0031022348765983488,
+      "Accuracy": 0.4815983175604626,
+      "val_f1": 0.48726713407991307
+    },
+    {
+      "Modèle": "GAT",
+      "Famille": "GNN",
+      "Graphe": "A. kNN",
+      "macro-F1": 0.4337832247170059,
+      "±": 0.007231303679084636,
+      "Accuracy": 0.4784437434279705,
+      "val_f1": 0.4734353830999984
+    },
+    {
+      "Modèle": "GCN",
+      "Famille": "GNN",
+      "Graphe": "C. Hybride",
+      "macro-F1": 0.4281645320195257,
+      "±": 0.01732010358083054,
+      "Accuracy": 0.47108307045215564,
+      "val_f1": 0.4709439130332728
+    },
+    {
+      "Modèle": "SBERT + LogReg",
+      "Famille": "Texte seul",
+      "Graphe": "—",
+      "macro-F1": 0.4253179470183526,
+      "±": 0.0,
+      "Accuracy": 0.47634069400630913,
+      "val_f1": NaN
+    },
+    {
+      "Modèle": "GAT",
+      "Famille": "GNN",
+      "Graphe": "C. Hybride",
+      "macro-F1": 0.4207502768020898,
+      "±": 0.01144882455104727,
+      "Accuracy": 0.4563617245005258,
+      "val_f1": 0.4460638614538548
+    },
+    {
+      "Modèle": "GCN",
+      "Famille": "GNN",
+      "Graphe": "D. NER Walid",
+      "macro-F1": 0.4173830351955837,
+      "±": 0.01375729953091359,
+      "Accuracy": 0.46267087276551,
+      "val_f1": 0.454681441626227
+    },
+    {
+      "Modèle": "GCN",
+      "Famille": "GNN",
+      "Graphe": "B. Entités",
+      "macro-F1": 0.3995310549654261,
+      "±": 0.01329502712455262,
+      "Accuracy": 0.45425867507886436,
+      "val_f1": 0.43847055523347356
+    },
+    {
+      "Modèle": "GAT",
+      "Famille": "GNN",
+      "Graphe": "D. NER Walid",
+      "macro-F1": 0.39413582029627076,
+      "±": 0.01478375482611549,
+      "Accuracy": 0.4195583596214511,
+      "val_f1": 0.4085196135016947
+    },
+    {
+      "Modèle": "GAT",
+      "Famille": "GNN",
+      "Graphe": "B. Entités",
+      "macro-F1": 0.38050224488154766,
+      "±": 0.013982796413988719,
+      "Accuracy": 0.43638275499474233,
+      "val_f1": 0.4014358407813999
+    }
+  ],
+  "best_text_only_macro_f1": 0.5091639455130149,
+  "best_gnn": {
+    "model": "GCN",
+    "graph": "A. kNN",
+    "macro_f1": 0.43873666259050137
+  },
+  "cora": {
+    "MLP (sans graphe)": {
+      "f1_mean": 0.5665364266892157,
+      "f1_std": 0.01491610621323571
+    },
+    "GCN": {
+      "f1_mean": 0.8105729384969189,
+      "f1_std": 0.008218319149357512
+    },
+    "GAT (8 têtes)": {
+      "f1_mean": 0.8020797322936706,
+      "f1_std": 0.01663258553306466
+    }
+  },
+  "oversmoothing": [
+    {
+      "layers": 1,
+      "macro_f1": 0.44413229958913114,
+      "std": 0.009522194471491968
+    },
+    {
+      "layers": 2,
+      "macro_f1": 0.4180411476048609,
+      "std": 0.011938603186923247
+    },
+    {
+      "layers": 3,
+      "macro_f1": 0.43819894898952483,
+      "std": 0.0076925829036012805
+    },
+    {
+      "layers": 4,
+      "macro_f1": 0.4378618050559422,
+      "std": 0.003199224528700001
+    },
+    {
+      "layers": 6,
+      "macro_f1": 0.43538496174060404,
+      "std": 0.011502259042214996
+    },
+    {
+      "layers": 8,
+      "macro_f1": 0.3254251405302533,
+      "std": 0.030906716342094437
+    }
+  ]
+}

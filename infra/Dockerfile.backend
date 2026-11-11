@@ -1,12 +1,19 @@
-FROM python:3.10-slim
+# API image. Build after `make pipeline` (data/processed and artifacts/ are copied in).
+FROM python:3.12-slim
 
 WORKDIR /app
-
-COPY pyproject.toml README.md ./
-COPY backend ./backend
+ENV CYBERSEC_ROOT=/app PYTHONUNBUFFERED=1
+COPY requirements.txt pyproject.toml README.md ./
+RUN pip install --no-cache-dir torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir -r requirements.txt
 COPY src ./src
-COPY configs ./configs
-RUN pip install --no-cache-dir .
+COPY backend ./backend
+COPY frontend ./frontend
+COPY data/processed ./data/processed
+COPY artifacts/vector_index ./artifacts/vector_index
+COPY artifacts/incident_classifier.joblib ./artifacts/
+COPY reports/metrics ./reports/metrics
+RUN pip install --no-cache-dir --no-deps -e .
 
 EXPOSE 8000
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

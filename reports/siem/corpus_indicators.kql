@@ -1,0 +1,4 @@
+CommonSecurityLog
+| where TimeGenerated > ago(24h)
+| where SourceIP in ("89.62.172.13") or DestinationIP in ("89.62.172.13")
+| project TimeGenerated, Computer, SourceIP, DestinationIP, Activity

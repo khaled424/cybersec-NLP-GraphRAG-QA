@@ -23,11 +23,36 @@ class InvalidIndicatorError(ValueError):
     """Raised when an IOC does not match its expected format."""
 
 
-def validate_ip(value: str) -> str:
+# Internal / non-routable ranges are not threat-intelligence indicators: a rule on them would
+# match normal traffic. Documentation ranges (RFC 5737 / 3849) are only accepted on request
+# (``allow_documentation=True``), for demos and tests.
+_NON_ROUTABLE = tuple(ipaddress.ip_network(n) for n in (
+    "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.0/8", "169.254.0.0/16", "0.0.0.0/8",
+    "224.0.0.0/4", "240.0.0.0/4", "100.64.0.0/10", "::1/128", "fc00::/7", "fe80::/10",
+))
+
+# Public infrastructure that appears in documentation and would flood a SIEM with false
+# positives (public DNS resolvers, root server A).
+KNOWN_BENIGN_IPS = frozenset({
+    "8.8.8.8", "8.8.4.4", "1.1.1.1", "1.0.0.1", "9.9.9.9", "149.112.112.112",
+    "208.67.222.222", "208.67.220.220", "198.41.0.4",
+})
+
+_DOCUMENTATION = tuple(ipaddress.ip_network(n) for n in ("192.0.2.0/24", "198.51.100.0/24", "203.0.113.0/24", "2001:db8::/32"))
+
+
+def validate_ip(value: str, allow_documentation: bool = False) -> str:
     try:
-        return str(ipaddress.ip_address(value.strip()))
+        address = ipaddress.ip_address(value.strip())
     except ValueError as exc:
         raise InvalidIndicatorError(f"invalid IP address: {value!r}") from exc
+    if any(address in network for network in _NON_ROUTABLE if network.version == address.version):
+        raise InvalidIndicatorError(f"non-routable IP address (internal, loopback or reserved): {value!r}")
+    if not allow_documentation and any(address in n for n in _DOCUMENTATION if n.version == address.version):
+        raise InvalidIndicatorError(f"documentation range (RFC 5737), not a real indicator: {value!r}")
+    if str(address) in KNOWN_BENIGN_IPS:
+        raise InvalidIndicatorError(f"known benign infrastructure, not an indicator: {value!r}")
+    return str(address)
 
 
 def validate_domain(value: str) -> str:
@@ -53,6 +78,7 @@ class DetectionRule:
     ips: list[str] = field(default_factory=list)
     domains: list[str] = field(default_factory=list)
     sha256: list[str] = field(default_factory=list)
+    allow_documentation: bool = False  # accept RFC 5737 example addresses (demos / tests only)
     rejected: list[str] = field(default_factory=list, init=False)
 
     def __post_init__(self) -> None:
@@ -60,7 +86,7 @@ class DetectionRule:
             raise ValueError(f"severity must be one of {SEVERITIES}")
         if not _TECHNIQUE.match(self.technique):
             raise ValueError(f"invalid ATT&CK technique id: {self.technique!r}")
-        self.ips = self._keep(self.ips, validate_ip)
+        self.ips = self._keep(self.ips, lambda v: validate_ip(v, self.allow_documentation))
         self.domains = self._keep(self.domains, validate_domain)
         self.sha256 = self._keep(self.sha256, validate_sha256)
         if not (self.ips or self.domains or self.sha256):

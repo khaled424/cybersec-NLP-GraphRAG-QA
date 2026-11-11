@@ -224,3 +224,4 @@ __marimo__/
 !/data/*/.gitkeep
 /assets/
 /outputs/
+/artifacts/
