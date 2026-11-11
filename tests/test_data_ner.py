@@ -108,3 +108,18 @@ def test_version_numbers_are_not_ips() -> None:
 def test_ip_at_end_of_sentence_is_extracted() -> None:
     keys = [e.key for e in CyberNER().extract("Beacon to 89.62.172.13. Then 10.0.0.5.")]
     assert keys == ["89.62.172.13", "10.0.0.5"]
+
+
+def test_deterministic_torch_restores_previous_state() -> None:
+    import os
+
+    import torch
+
+    import cybersec_nlp.config  # noqa: F401 - sets CUBLAS_WORKSPACE_CONFIG on import
+    from cybersec_nlp.reproducibility import deterministic_torch
+
+    assert os.environ.get("CUBLAS_WORKSPACE_CONFIG")  # set when cybersec_nlp.config is imported
+    before = torch.are_deterministic_algorithms_enabled()
+    with deterministic_torch(0):
+        assert torch.are_deterministic_algorithms_enabled()
+    assert torch.are_deterministic_algorithms_enabled() == before

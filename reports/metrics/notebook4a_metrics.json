@@ -24,7 +24,16 @@
       "nDCG@4": 0.779,
       "Precision@4": 0.207,
       "couverture": 1.0,
-      "latence (ms)": 4.041
+      "latence (ms)": 4.248
+    },
+    {
+      "strategy": "vector+rerank",
+      "Recall@4": 0.87,
+      "MRR@4": 0.795,
+      "nDCG@4": 0.814,
+      "Precision@4": 0.218,
+      "couverture": 1.0,
+      "latence (ms)": 57.561
     },
     {
       "strategy": "graph",
@@ -33,25 +42,25 @@
       "nDCG@4": 0.051,
       "Precision@4": 0.019,
       "couverture": 0.373,
-      "latence (ms)": 0.09
+      "latence (ms)": 0.087
     },
     {
       "strategy": "hybrid",
-      "Recall@4": 0.81,
-      "MRR@4": 0.755,
-      "nDCG@4": 0.769,
-      "Precision@4": 0.202,
+      "Recall@4": 0.857,
+      "MRR@4": 0.789,
+      "nDCG@4": 0.807,
+      "Precision@4": 0.214,
       "couverture": 1.0,
-      "latence (ms)": 3.998
+      "latence (ms)": 58.838
     }
   ],
   "real_answers": {
     "abstention correcte hors domaine": 1.0,
     "fausses abstentions (dans le domaine)": 0.0,
-    "phrases étayées (moyenne)": 0.9896333333333334,
-    "LLM cite spontanément [S#]": 0.43333333333333335,
-    "ROUGE-L vs référence": 0.15173055380807307,
-    "latence génération (s)": 2.7347933333333336
+    "phrases étayées (moyenne)": 1.0,
+    "LLM cite spontanément [S#]": 0.36666666666666664,
+    "ROUGE-L vs référence": 0.17120284489858306,
+    "latence génération (s)": 2.841840000000001
   },
   "n_benchmark": 300,
   "n_generation": 30,

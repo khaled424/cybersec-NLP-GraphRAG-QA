@@ -17,7 +17,9 @@ répartition du travail suit le plan à 6 membres (4 notebooks académiques).
 ```text
 data/                  raw (copie brute figée), processed (livrables du Notebook 1) — contenu ignoré par Git
 artifacts/             index FAISS, classifieur, modèles fine-tunés (SecBERT, LoRA) — ignoré par Git
-notebooks/             00_Master_Notebook + Notebooks 1, 2A, 2B, 3, 4A, 4B (+ EDA de profilage)
+notebooks/             Notebooks 1, 2A, 2B, 3, 4A, 4B, Synthese_TDSP, EDA de profilage
+                       + 00_Master_Notebook (livrable, généré par scripts/build_master_notebook.py)
+scripts/               build_master_notebook.py
 reports/metrics/       métriques JSON exportées par chaque notebook (lues par le maître et le MVP)
 reports/siem/          règles SPL / KQL générées
 reports/figures/       graphes interactifs (PyVis)
@@ -48,7 +50,8 @@ Notebook 1 (Walid) ──► corpus_clean.parquet, entities.json, knowledge_grap
      ├──► Notebook 2B (HGT + Leiden : entités du NER, thèmes LDA)
      ├──► Notebook 4A (HybridRAG : contrat RAG + graphe STIX) ◄── LLM local du Notebook 3
      └──► Notebook 4B (agent Cypher, audit, SIEM sur le graphe réel) ◄── LLM local du Notebook 3
-Tous ──► reports/metrics/*.json ──► 00_Master_Notebook + page « Métriques » du MVP
+Tous ──► reports/metrics/*.json ──► Synthese_TDSP + page « Pilotage » de Vigie
+Tous ──► scripts/build_master_notebook.py ──► 00_Master_Notebook (livrable : toutes les cellules, ordre TDSP)
 ```
 
 ## Commandes

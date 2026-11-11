@@ -35,7 +35,7 @@ def test_invalid_indicators_rejected_not_injected() -> None:
 
 
 def test_empty_rule_refused() -> None:
-    with pytest.raises(ValueError, match="no valid indicator"):
+    with pytest.raises(ValueError, match="aucun indicateur valide"):
         make_rule(ips=["not-an-ip"])
 
 
@@ -56,12 +56,12 @@ def test_deployment_artifacts() -> None:
 @pytest.mark.parametrize("ip", ["10.1.2.3", "192.168.0.10", "127.0.0.1", "172.20.1.1"])
 def test_internal_ips_are_rejected(ip: str) -> None:
     rule = make_rule(ips=[ip, "203.0.113.9"])
-    assert rule.ips == ["203.0.113.9"] and "non-routable" in rule.rejected[0]
+    assert rule.ips == ["203.0.113.9"] and "non routable" in rule.rejected[0]
 
 
 def test_known_benign_resolvers_are_rejected() -> None:
     rule = make_rule(ips=["8.8.8.8", "1.1.1.1", "203.0.113.9"])
-    assert rule.ips == ["203.0.113.9"] and all("benign" in r for r in rule.rejected)
+    assert rule.ips == ["203.0.113.9"] and all("bénigne" in r for r in rule.rejected)
 
 
 def test_documentation_ranges_need_opt_in() -> None:

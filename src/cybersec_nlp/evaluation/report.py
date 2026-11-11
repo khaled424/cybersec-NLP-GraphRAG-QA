@@ -80,8 +80,9 @@ CRITERIA: tuple[Criterion, ...] = (
               lambda m: m["notebook4b"]["real_poisoning"]["précision"]),
     Criterion("Sécurité", "Fuites inter-locataires (OWASP LLM08)", "Notebook 4B", 0.0, False,
               lambda m: m["notebook4b"]["llm08"]["leaks_fixed"]),
-    Criterion("Graph-RAG agentique", "Réponses exactes Text-to-Cypher avec agent", "Notebook 4B", 0.50, True,
-              lambda m: _row(m["notebook4b"]["real_agent"], "configuration", "Agent + réparation LLM")["exacte"]),
+    Criterion("Graph-RAG agentique", "Réponses exactes Text-to-Cypher (agent, questions jamais vues)", "Notebook 4B",
+              0.50, True,
+              lambda m: _row(m["notebook4b"]["real_agent"], "configuration", "Gabarits + agent")["exacte_heldout"]),
 )
 
 

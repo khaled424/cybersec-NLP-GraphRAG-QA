@@ -22,7 +22,8 @@ mise run setup      # dépendances + dataset vérifié + artefacts du pipeline (
 | `mise run setup` | `install` + `data` + `pipeline` (première installation) | ~10 min |
 | `mise run data` | télécharge le dataset à la révision figée et vérifie son SHA-256 | < 10 s |
 | `mise run pipeline` | corpus nettoyé → NER → graphe STIX → scripts Neo4j → index FAISS → classifieur | ~2 min |
-| `mise run notebooks` | exécute les 7 notebooks dans l'ordre (GPU recommandé) | ~1 h |
+| `mise run notebooks` | exécute les notebooks de l'équipe et la synthèse, dans l'ordre (GPU recommandé) | ~1 h |
+| `mise run master` | **reconstruit le notebook maître** (livrable) à partir des notebooks puis l'exécute | ~1 h 30 |
 | `mise run notebook 00_Master_Notebook` | exécute un seul notebook (nom sans `.ipynb`) | variable |
 | `mise run lab` | ouvre JupyterLab sur `notebooks/` | — |
 | `mise run mvp` | **Vigie** complet : API + interface en parallèle (Ctrl+C arrête les deux) | ~15 s |
@@ -43,8 +44,8 @@ mise run pipeline && mise run mvp          # puis ouvrir http://localhost:8501
 # Après une modification du package
 mise run check
 
-# Après une modification d'un notebook ou du NER : régénérer les résultats
-mise run pipeline && mise run notebooks    # puis vérifier la page « Métriques » de Vigie
+# Après une modification d'un notebook ou du NER : régénérer les résultats et le livrable
+mise run pipeline && mise run notebooks && mise run master
 ```
 
 ## Variables d'environnement (définies par `mise.toml`)

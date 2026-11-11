@@ -33,7 +33,8 @@ def _records(data: dict[str, Any], key: str) -> pd.DataFrame:
 
 
 def render() -> None:
-    st.title("📊 Métriques du projet")
+    st.title("📊 Pilotage — indicateurs de performance")
+    st.caption("Qualité mesurée de chaque composant de Vigie (notebooks du projet) et critères d'acceptation TDSP.")
     payload = call(api_client.metrics, spinner="Chargement des métriques…")
     if not payload:
         return

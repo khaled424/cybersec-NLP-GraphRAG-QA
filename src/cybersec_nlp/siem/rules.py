@@ -45,25 +45,25 @@ def validate_ip(value: str, allow_documentation: bool = False) -> str:
     try:
         address = ipaddress.ip_address(value.strip())
     except ValueError as exc:
-        raise InvalidIndicatorError(f"invalid IP address: {value!r}") from exc
+        raise InvalidIndicatorError(f"adresse IP invalide : {value!r}") from exc
     if any(address in network for network in _NON_ROUTABLE if network.version == address.version):
-        raise InvalidIndicatorError(f"non-routable IP address (internal, loopback or reserved): {value!r}")
+        raise InvalidIndicatorError(f"adresse non routable (interne, bouclage ou réservée) : {value!r}")
     if not allow_documentation and any(address in n for n in _DOCUMENTATION if n.version == address.version):
-        raise InvalidIndicatorError(f"documentation range (RFC 5737), not a real indicator: {value!r}")
+        raise InvalidIndicatorError(f"plage de documentation (RFC 5737), pas un indicateur réel : {value!r}")
     if str(address) in KNOWN_BENIGN_IPS:
-        raise InvalidIndicatorError(f"known benign infrastructure, not an indicator: {value!r}")
+        raise InvalidIndicatorError(f"infrastructure publique bénigne (résolveur DNS…), pas un indicateur : {value!r}")
     return str(address)
 
 
 def validate_domain(value: str) -> str:
     if not _DOMAIN.match(value.strip()):
-        raise InvalidIndicatorError(f"invalid domain: {value!r}")
+        raise InvalidIndicatorError(f"domaine invalide : {value!r}")
     return value.strip().lower()
 
 
 def validate_sha256(value: str) -> str:
     if not _SHA256.match(value.strip()):
-        raise InvalidIndicatorError(f"invalid SHA-256: {value!r}")
+        raise InvalidIndicatorError(f"SHA-256 invalide : {value!r}")
     return value.strip().lower()
 
 
@@ -90,7 +90,7 @@ class DetectionRule:
         self.domains = self._keep(self.domains, validate_domain)
         self.sha256 = self._keep(self.sha256, validate_sha256)
         if not (self.ips or self.domains or self.sha256):
-            raise ValueError("no valid indicator left: refusing to build an empty rule")
+            raise ValueError("aucun indicateur valide : règle vide refusée")
 
     def _keep(self, values: list[str], validator: Callable[[str], str]) -> list[str]:
         kept = []

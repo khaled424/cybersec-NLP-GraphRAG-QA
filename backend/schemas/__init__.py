@@ -1,6 +1,6 @@
 """Request models of the SOC assistant API (validated by FastAPI / Pydantic)."""
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -28,3 +28,14 @@ class SiemRuleRequest(BaseModel):
     ips: list[str] = Field(default_factory=list, max_length=500)
     domains: list[str] = Field(default_factory=list, max_length=500)
     sha256: list[str] = Field(default_factory=list, max_length=500)
+
+
+class CaseExportRequest(BaseModel):
+    id: str = Field(min_length=1, max_length=40)
+    title: str = Field(default="Incident", max_length=200)
+    status: str = Field(default="Nouveau", max_length=60)
+    opened_at: str = Field(default="", max_length=40)
+    report: str = Field(default="", max_length=20000)
+    notes: str = Field(default="", max_length=20000)
+    triage: dict[str, Any] = Field(default_factory=dict)
+    journal: list[dict[str, str]] = Field(default_factory=list, max_length=500)

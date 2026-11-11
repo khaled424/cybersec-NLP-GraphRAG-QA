@@ -6,24 +6,27 @@
   "real_agent": [
     {
       "configuration": "LLM seul (1 essai)",
-      "exécutable": 0.4,
       "exacte": 0.0,
-      "partielle": 0.0,
-      "étapes": 1.6
-    },
-    {
-      "configuration": "Agent déterministe",
-      "exécutable": 0.6,
-      "exacte": 0.4,
-      "partielle": 0.5,
-      "étapes": 2.4
+      "exacte_heldout": 0.27,
+      "exacte_libre": 0.25,
+      "exécutable": 0.48,
+      "étapes": 1.52
     },
     {
       "configuration": "Agent + réparation LLM",
-      "exécutable": 0.7,
       "exacte": 0.4,
-      "partielle": 0.5,
-      "étapes": 3.0
+      "exacte_heldout": 0.45,
+      "exacte_libre": 0.5,
+      "exécutable": 0.76,
+      "étapes": 2.68
+    },
+    {
+      "configuration": "Gabarits + agent",
+      "exacte": 1.0,
+      "exacte_heldout": 1.0,
+      "exacte_libre": 0.5,
+      "exécutable": 0.96,
+      "étapes": 1.36
     }
   ],
   "demo_poisoning": {
@@ -78,7 +81,7 @@
   },
   "siem": {
     "demo_rejected": [
-      "invalid domain: 'x.example.com\") | delete index=*'"
+      "domaine invalide : 'x.example.com\") | delete index=*'"
     ],
     "indicateurs candidats": 20,
     "IP retenues": 1,

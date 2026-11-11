@@ -4,7 +4,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends
 
-from backend.schemas import AskRequest, QuestionRequest, SiemRuleRequest, TextRequest
+from backend.schemas import AskRequest, CaseExportRequest, QuestionRequest, SiemRuleRequest, TextRequest
 from backend.services import get_engine
 from cybersec_nlp.engine import SOCEngine
 
@@ -22,7 +22,7 @@ def ask(request: AskRequest, engine: SOCEngine = Engine) -> dict[str, Any]:
     return engine.ask(request.question, request.strategy, request.use_llm, request.previous_question)
 
 
-@router.post("/analyze", summary="Triage d'un rapport : catégorie, entités, règle SIEM brouillon")
+@router.post("/analyze", summary="Qualification d'un signalement : priorité, catégorie, TTP ATT&CK, IOC, playbook")
 def analyze(request: TextRequest, engine: SOCEngine = Engine) -> dict[str, Any]:
     return engine.analyze_report(request.text)
 
@@ -50,3 +50,8 @@ def audit_graph(engine: SOCEngine = Engine) -> dict[str, Any]:
 @router.get("/metrics", summary="Métriques consolidées et critères d'acceptation TDSP")
 def metrics() -> dict[str, Any]:
     return SOCEngine.metrics()
+
+
+@router.post("/cases/export", summary="Fiche d'incident au format Markdown (prête pour le ticket)")
+def export_case(request: CaseExportRequest) -> dict[str, str]:
+    return {"markdown": SOCEngine.case_report(request.model_dump())}

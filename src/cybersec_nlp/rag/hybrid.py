@@ -2,7 +2,8 @@
 
 Design by Membre 5 (Notebook 4A), generalised from the demo graph to the real STIX graph:
 
-* **vector branch** - best chunk per document from the FAISS index;
+* **vector branch** - best chunk per document from the FAISS index, optionally re-ordered by a
+  multilingual cross-encoder (:mod:`cybersec_nlp.rag.reranker`);
 * **graph branch** - entities of the question are linked to graph nodes (NER), then the
   branch returns (a) typed STIX relations touching them and (b) the documents that mention
   the most linked entities (hubs are skipped unless several entities intersect);
@@ -25,6 +26,7 @@ from cybersec_nlp.llm.guardrails import check_prompt
 from cybersec_nlp.llm.prompts import ABSTAIN_MESSAGE, SOC_SYSTEM_PROMPT
 from cybersec_nlp.nlp.ner import CyberNER
 from cybersec_nlp.rag.grounding import GroundingChecker
+from cybersec_nlp.rag.reranker import CrossEncoderReranker
 from cybersec_nlp.rag.vector_index import VectorIndex
 
 STRATEGIES = ("vector", "graph", "hybrid")
@@ -149,17 +151,26 @@ def fuse(vector: list[Evidence], graph: list[Evidence], budget: int = 6) -> list
 
 class HybridRAG:
     def __init__(self, index: VectorIndex, graph_retriever: GraphRetriever, llm=None,
-                 k_vector: int = 4, k_graph: int = 4, budget: int = 6, min_vector_score: float = 0.83) -> None:
+                 k_vector: int = 4, k_graph: int = 4, budget: int = 6, min_vector_score: float = 0.83,
+                 reranker: CrossEncoderReranker | None = None, rerank_candidates: int = 20) -> None:
         self.index, self.graph_retriever, self.llm = index, graph_retriever, llm
         self.k_vector, self.k_graph, self.budget = k_vector, k_graph, budget
         self.min_vector_score = min_vector_score
+        self.reranker, self.rerank_candidates = reranker, rerank_candidates
         self.grounding = GroundingChecker(index.embedder)
 
     def vector_retrieve(self, question: str) -> list[Evidence]:
-        return [
-            Evidence(c.doc_id, c.source, c.text, "vector", c.chunk_id, score)
-            for c, score in self.index.search(question, self.k_vector, self.min_vector_score)
-        ]
+        """Dense retrieval; with a reranker, the top candidates are re-ordered by the cross-encoder.
+
+        The abstention threshold stays on the bi-encoder score (calibrated in Notebook 4A), the
+        reranker only changes the order of the candidates that pass it.
+        """
+        if self.reranker is None:
+            hits = self.index.search(question, self.k_vector, self.min_vector_score)
+        else:
+            candidates = self.index.search(question, self.rerank_candidates, self.min_vector_score)
+            hits = self.reranker.rerank(question, [c for c, _ in candidates], lambda c: c.text)[: self.k_vector]
+        return [Evidence(c.doc_id, c.source, c.text, "vector", c.chunk_id, score) for c, score in hits]
 
     def retrieve(self, question: str, strategy: str = "hybrid") -> tuple[list[Evidence], dict[str, Any]]:
         if strategy not in STRATEGIES:

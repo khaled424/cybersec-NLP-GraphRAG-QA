@@ -70,31 +70,31 @@
     ],
     "n_train": 1268,
     "n_test": 317,
-    "macro_f1": 0.5287424814972789,
-    "accuracy": 0.5993690851735016,
+    "macro_f1": 0.534012762767695,
+    "accuracy": 0.6025236593059937,
     "per_class": {
       "Cloud & Governance": {
-        "precision": 0.625,
+        "precision": 0.5555555555555556,
         "recall": 0.3125,
-        "f1-score": 0.4166666666666667,
+        "f1-score": 0.4,
         "support": 16.0
       },
       "Detection & IR (SOC)": {
-        "precision": 0.47058823529411764,
-        "recall": 0.6153846153846154,
-        "f1-score": 0.5333333333333333,
+        "precision": 0.5142857142857142,
+        "recall": 0.6923076923076923,
+        "f1-score": 0.5901639344262295,
         "support": 26.0
       },
       "Identity & Crypto": {
-        "precision": 0.46808510638297873,
+        "precision": 0.4489795918367347,
         "recall": 0.55,
-        "f1-score": 0.5057471264367817,
+        "f1-score": 0.4943820224719101,
         "support": 40.0
       },
       "Malware & Ransomware": {
-        "precision": 0.6056338028169014,
-        "recall": 0.7678571428571429,
-        "f1-score": 0.6771653543307087,
+        "precision": 0.6197183098591549,
+        "recall": 0.7857142857142857,
+        "f1-score": 0.6929133858267716,
         "support": 56.0
       },
       "Network & Intrusion": {
@@ -104,23 +104,29 @@
         "support": 14.0
       },
       "Vulnerability & Exploit": {
-        "precision": 0.8333333333333334,
-        "recall": 0.5952380952380952,
-        "f1-score": 0.6944444444444444,
+        "precision": 0.8588235294117647,
+        "recall": 0.5793650793650794,
+        "f1-score": 0.6919431279620853,
         "support": 126.0
       },
       "Web App Attacks": {
-        "precision": 0.423728813559322,
+        "precision": 0.4166666666666667,
         "recall": 0.6410256410256411,
-        "f1-score": 0.5102040816326531,
+        "f1-score": 0.5050505050505051,
         "support": 39.0
       }
+    },
+    "embedding_weight": 0.5,
+    "cv_macro_f1": {
+      "0.0": 0.5503006011717498,
+      "0.5": 0.551672854662334,
+      "1.0": 0.5423288926201305,
+      "2.0": 0.5327627423762115
     }
   },
   "timings_s": {
-    "cleaning": 0.99,
-    "ner_graph_exports": 27.87,
-    "vector_index": 78.61,
-    "classifier": 10.19
+    "cleaning": 0.31,
+    "ner_graph_exports": 8.88,
+    "classifier": 143.27
   }
 }
