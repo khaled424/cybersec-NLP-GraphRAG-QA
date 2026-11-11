@@ -26,7 +26,7 @@ switch ($Command) {
         }
     }
     "api" { & python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 }
-    "ui" { & python -m streamlit run frontend/app.py --server.port 8501 }
+    "ui" { & python -m streamlit run frontend/app.py --server.port 8501 --server.headless true --browser.gatherUsageStats false }
     "test" { & python -m pytest }
     "lint" { & python -m ruff check . --exclude notebooks }
 }

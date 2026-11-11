@@ -1,0 +1,95 @@
+# mise — outils, environnement et commandes du projet (https://mise.jdx.dev)
+#
+#   mise trust && mise install      # une seule fois : Python 3.12 + création de .venv
+#   mise tasks                      # liste des commandes disponibles
+#   mise run <tâche>                # ex. : mise run setup, mise run mvp
+#
+# La venv `.venv` est créée et activée automatiquement dans le dossier du projet.
+
+[tools]
+python = "3.12"
+
+[env]
+_.python.venv = { path = ".venv", create = true }
+# Interpréteur de la venv appelé explicitement : les tâches ne dépendent pas de l'ordre du PATH.
+PY = "{{config_root}}/.venv/bin/python"
+CYBERSEC_API_URL = "http://localhost:8000"
+PYTORCH_CUDA_ALLOC_CONF = "expandable_segments:True"
+
+# ------------------------------------------------------------------ installation
+[tasks.install]
+description = "Installe les dépendances (requirements.txt), le package en mode éditable et le modèle spaCy"
+run = [
+  "$PY -m pip install --upgrade pip",
+  "$PY -m pip install -r requirements.txt",
+  "$PY -m pip install -e . --no-deps",
+  "$PY -m spacy download en_core_web_sm",
+]
+
+[tasks.setup]
+description = "Première installation complète : dépendances, dataset vérifié, artefacts du pipeline"
+run = ["mise run install", "mise run data", "mise run pipeline"]
+
+# ------------------------------------------------------------------ données et modèles
+[tasks.data]
+description = "Télécharge le dataset à la révision figée et vérifie son empreinte SHA-256"
+run = "$PY -m cybersec_nlp.data.download"
+
+[tasks.pipeline]
+description = "Corpus nettoyé → NER → graphe STIX → scripts Neo4j → index FAISS → classifieur (~2 min)"
+run = "$PY -m cybersec_nlp.pipelines.build_knowledge_base"
+
+[tasks.notebooks]
+description = "Exécute les 7 notebooks dans l'ordre des dépendances (GPU recommandé, ~1 h)"
+run = """
+for nb in Notebook1_Preprocessing_NER_Graph Notebook2_PartA_GNN_PyG Notebook2_PartB_GTN_Leiden \
+          Notebook3_LLM_FineTuning_Evaluation Notebook4_PartA_HybridRAG_Pipeline \
+          Notebook4_PartB_AgenticRAG_Security_SIEM 00_Master_Notebook; do
+  echo "=== $nb"
+  $PY -m jupyter nbconvert --to notebook --execute --inplace \
+    --ExecutePreprocessor.timeout=7200 "notebooks/$nb.ipynb" || exit 1
+done
+"""
+
+[tasks.notebook]
+description = "Exécute un seul notebook : mise run notebook <nom sans .ipynb>"
+usage = 'arg "<name>" help="Nom du notebook, ex. 00_Master_Notebook"'
+run = '$PY -m jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=7200 "notebooks/${usage_name}.ipynb"'
+
+[tasks.lab]
+description = "Ouvre JupyterLab sur le dossier notebooks/"
+run = "$PY -m jupyter lab notebooks/"
+
+# ------------------------------------------------------------------ MVP Vigie
+[tasks.api]
+description = "API FastAPI de Vigie sur http://localhost:8000 (documentation : /docs)"
+run = "$PY -m uvicorn backend.main:app --host 0.0.0.0 --port 8000"
+
+[tasks.ui]
+description = "Interface Streamlit de Vigie sur http://localhost:8501 (l'API doit tourner)"
+run = "$PY -m streamlit run frontend/app.py --server.port 8501 --server.headless true --browser.gatherUsageStats false"
+
+[tasks.mvp]
+description = "Lance Vigie complet : API + interface en parallèle (Ctrl+C arrête les deux)"
+run = "mise run api ::: ui"
+
+[tasks.docker]
+description = "Vigie en conteneurs (CPU) — nécessite d'avoir lancé le pipeline"
+run = "docker compose -f infra/docker-compose.yml up --build"
+
+# ------------------------------------------------------------------ qualité
+[tasks.test]
+description = "Tests unitaires et d'API (pytest)"
+run = "$PY -m pytest"
+
+[tasks.lint]
+description = "Analyse statique (ruff)"
+run = "$PY -m ruff check ."
+
+[tasks.format]
+description = "Corrige automatiquement ce que ruff sait corriger"
+run = "$PY -m ruff check . --fix"
+
+[tasks.check]
+description = "Lint + tests : à lancer avant chaque push"
+depends = ["lint", "test"]

@@ -26,11 +26,11 @@ api:                ## FastAPI backend on http://localhost:8000 (docs: /docs)
 	$(PYTHON) -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 
 ui:                 ## Streamlit interface on http://localhost:8501
-	$(PYTHON) -m streamlit run frontend/app.py --server.port 8501
+	$(PYTHON) -m streamlit run frontend/app.py --server.port 8501 --server.headless true --browser.gatherUsageStats false
 
 mvp:                ## API + interface together (Ctrl+C stops both)
 	$(PYTHON) -m uvicorn backend.main:app --port 8000 & \
-	$(PYTHON) -m streamlit run frontend/app.py --server.port 8501; kill %1
+	$(PYTHON) -m streamlit run frontend/app.py --server.port 8501 --server.headless true --browser.gatherUsageStats false; kill %1
 
 test:
 	$(PYTHON) -m pytest

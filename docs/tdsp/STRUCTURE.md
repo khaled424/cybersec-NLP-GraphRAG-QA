@@ -53,6 +53,8 @@ Tous ──► reports/metrics/*.json ──► 00_Master_Notebook + page « Mé
 
 ## Commandes
 
+Avec mise (`mise run <tâche>`, liste complète dans [`docs/COMMANDES.md`](../COMMANDES.md)) ou make :
+
 ```bash
 make install     # dépendances, package, modèle spaCy
 make pipeline    # artefacts : corpus, NER, graphe, Cypher, index FAISS, classifieur

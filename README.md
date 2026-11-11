@@ -22,13 +22,18 @@ ou page *Métriques* de Vigie). Les seuils sont des propositions à valider avec
 
 ## Démarrage rapide
 
+Avec [mise](https://mise.jdx.dev) (recommandé : Python 3.12 et `.venv` gérés automatiquement) :
+
 ```bash
-make install     # dépendances (requirements.txt), package en mode éditable, modèle spaCy
-make pipeline    # corpus nettoyé → NER → graphe STIX → scripts Neo4j → index FAISS → classifieur (~2 min)
-make mvp         # Vigie : API http://localhost:8000/docs + interface http://localhost:8501
+mise trust && mise install   # une seule fois : Python 3.12 + .venv
+mise run setup               # dépendances, dataset vérifié, artefacts du pipeline
+mise run mvp                 # Vigie : API http://localhost:8000/docs + interface http://localhost:8501
+mise run check               # lint + tests, avant chaque push
 ```
 
-Sous Windows : `.\run.ps1 install`, `.\run.ps1 pipeline`, puis `.\run.ps1 api` et `.\run.ps1 ui` dans deux terminaux.
+Toutes les commandes (notebooks, API seule, Docker, dépannage) : **[`docs/COMMANDES.md`](./docs/COMMANDES.md)**.
+Sans mise : `make install && make pipeline && make mvp` ; sous Windows : `.\run.ps1 install`, `.\run.ps1 pipeline`,
+puis `.\run.ps1 api` et `.\run.ps1 ui` dans deux terminaux.
 Sans GPU CUDA, Vigie fonctionne en mode **extractif** (preuves citées, sans génération).
 Docker (CPU) : `make pipeline` puis `docker compose -f infra/docker-compose.yml up --build`.
 

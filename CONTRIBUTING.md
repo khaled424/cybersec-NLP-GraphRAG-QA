@@ -6,6 +6,9 @@ should be reproducible, reviewable, and safe to run on Windows.
 
 ## Development setup
 
+With [mise](https://mise.jdx.dev): `mise trust && mise install && mise run setup`, then `mise run check`
+before every push. All commands are listed in [`docs/COMMANDES.md`](docs/COMMANDES.md). Without mise:
+
 Run commands from the repository root in PowerShell:
 
 ```powershell
