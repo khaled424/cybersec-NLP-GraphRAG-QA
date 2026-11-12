@@ -225,3 +225,6 @@ __marimo__/
 /assets/
 /outputs/
 /artifacts/
+
+# rendered videos and previews (regenerate with media/render.py)
+media/out/

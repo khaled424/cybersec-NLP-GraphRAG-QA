@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Vigie — commercial</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="frame"></div>
+  <script src="engine.js"></script>
+  <script src="components.js"></script>
+  <script src="commercial.js"></script>
+  <script src="demo_cards.js"></script>
+  <script>
+    // Preview in a browser: index.html#12.5 shows the frame at 12.5 s; index.html#play plays it in real time.
+    const name = new URLSearchParams(location.search).get("timeline") || "commercial";
+    const hash = location.hash.slice(1);
+    if (hash === "play") {
+      const t0 = performance.now();
+      const loop = () => { renderAt(((performance.now() - t0) / 1000) % timelineInfo(name).duration, name); requestAnimationFrame(loop); };
+      loop();
+    } else {
+      renderAt(parseFloat(hash) || 0, name);
+    }
+  </script>
+</body>
+</html>
