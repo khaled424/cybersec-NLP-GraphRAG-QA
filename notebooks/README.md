@@ -18,7 +18,9 @@ La logique réutilisable vit dans `src/cybersec_nlp/` (testée) ; les notebooks 
 
 **Notebook maître.** Il est **généré** par `scripts/build_master_notebook.py` : ne pas le modifier à la main, mais
 modifier le notebook source puis lancer `mise run master` (reconstruction + exécution). Chaque partie démarre par une
-cellule d'isolation (remise à zéro du noyau, libération du GPU).
+cellule d'isolation (remise à zéro du noyau, libération du GPU). Son texte est une **version condensée** des cellules
+Markdown (`scripts/master_summaries.md`, une entrée par cellule source) ; `mise run master-text` l'actualise sans
+réexécuter le code. Une cellule source modifiée reprend son texte complet et la construction le signale.
 
 **Exécution** : `mise run pipeline` puis `mise run notebooks` (dans l'ordre ci-dessus ; GPU CUDA requis pour les
 Notebooks 3, 4A §7 et 4B §6.1). Les données brutes et les artefacts lourds (`data/`, `artifacts/`) ne sont pas versionnés.

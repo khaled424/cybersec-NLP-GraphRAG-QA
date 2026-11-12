@@ -19,7 +19,7 @@ data/                  raw (copie brute figée), processed (livrables du Noteboo
 artifacts/             index FAISS, classifieur, modèles fine-tunés (SecBERT, LoRA) — ignoré par Git
 notebooks/             Notebooks 1, 2A, 2B, 3, 4A, 4B, Synthese_TDSP, EDA de profilage
                        + 00_Master_Notebook (livrable, généré par scripts/build_master_notebook.py)
-scripts/               build_master_notebook.py
+scripts/               build_master_notebook.py, master_summaries.md (texte condensé du maître)
 reports/metrics/       métriques JSON exportées par chaque notebook (lues par le maître et le MVP)
 reports/siem/          règles SPL / KQL générées
 reports/figures/       graphes interactifs (PyVis)
