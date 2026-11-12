@@ -24,6 +24,7 @@ mise run setup      # dépendances + dataset vérifié + artefacts du pipeline (
 | `mise run pipeline` | corpus nettoyé → NER → graphe STIX → scripts Neo4j → index FAISS → classifieur | ~2 min |
 | `mise run notebooks` | exécute les notebooks de l'équipe et la synthèse, dans l'ordre (GPU recommandé) | ~1 h |
 | `mise run master` | **reconstruit le notebook maître** (livrable) à partir des notebooks puis l'exécute | ~1 h 30 |
+| `mise run master-text` | met à jour **le texte seul** du maître (résumés de `scripts/master_summaries.md`) ; code et sorties intacts | < 5 s |
 | `mise run notebook 00_Master_Notebook` | exécute un seul notebook (nom sans `.ipynb`) | variable |
 | `mise run lab` | ouvre JupyterLab sur `notebooks/` | — |
 | `mise run mvp` | **Vigie** complet : API + interface en parallèle (Ctrl+C arrête les deux) | ~15 s |

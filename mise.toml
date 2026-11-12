@@ -58,6 +58,10 @@ run = [
   "$PY -m jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=7200 notebooks/00_Master_Notebook.ipynb",
 ]
 
+[tasks.master-text]
+description = "Met à jour le texte du notebook maître (scripts/master_summaries.md) sans réexécuter le code"
+run = "$PY scripts/build_master_notebook.py --markdown-only"
+
 [tasks.notebook]
 description = "Exécute un seul notebook : mise run notebook <nom sans .ipynb>"
 usage = 'arg "<name>" help="Nom du notebook, ex. 00_Master_Notebook"'
